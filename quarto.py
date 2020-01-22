@@ -1,3 +1,5 @@
+import random
+
 mapp="""
 　　｜Ａ　｜Ｂ　｜Ｃ　｜Ｄ　｜
 ＿＿丄＿＿丄＿＿丄＿＿丄＿＿」
@@ -46,38 +48,39 @@ def draw_map():
     print(mapp.format(mapstr))
 
 def put_player():
-    print("playerがコマを置きます")
+    '''playerがコマを置きます'''
 
 def put_com():
-    print("comがコマを置きます")
+    '''comがコマを置きます'''
 
 def give_player():
-    print("playerがcomにコマを渡します")
+    '''playerがcomにコマを渡します'''
 
 def give_com():
-    print("comがplayerにコマを渡します")
+    '''comがplayerにコマを渡します'''
 
 def finish():
-    print("quartoです")
+    #print("quartoです")
     return True
 
 def main():
-    print(int(str(piece[9])[-1]))
-    draw_map()
+    print(piece)
+    #print(int(str(piece[15])[-2]))
+    #draw_map()
 
     while(True):
         give_com()
         put_player()
-        draw_map()
-        if finish():
-            print("playerの勝ちです")
+        #draw_map()
+        #if finish():
+        #    print("playerの勝ちです")
         #    break
 
         give_player()
         put_com()
-        draw_map()
+        #draw_map()
         if finish():
-            print("comの勝ちです")
+            #print("comの勝ちです")
             break
 
 if __name__ == "__main__":
