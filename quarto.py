@@ -58,6 +58,10 @@ def give_player():
 
 def give_com():
     '''comがplayerにコマを渡します'''
+    
+    ran = random.choice(piece)
+    #print(ran)
+    #print(int(str(ran)[0]))
 
 def finish():
     #print("quartoです")
