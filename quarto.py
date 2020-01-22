@@ -16,34 +16,18 @@ mapp="""
 　　｜{0[12][2]}{0[12][3]}｜{0[13][2]}{0[13][3]}｜{0[14][2]}{0[14][3]}｜{0[15][2]}{0[15][3]}｜
 ＿＿丄＿＿丄＿＿丄＿＿丄＿＿」
 """
-maplist = [[-1] * 4 for i in range(16)]
+maplist = [''] * 16
 mapstr = [["　"] * 4 for i in range(16)]
 piece = [format(i, '04b') for i in range(16)]
+piecestr = [['黒', '白'], ['高', '低'], ['円', '角'], ['有', '無']]
 
 def draw_map():
+    '''マップを描写します'''
 
-    for i in range(len(maplist)): #0~15
-        for j in range(len(maplist[i])): #0~3
-            if j == 0:
-                if maplist[i][j] == 0:
-                    mapstr[i][j]="黒"
-                elif maplist[i][j] == 1:
-                    mapstr[i][j]="白"
-            elif j == 1:
-                if maplist[i][j] == 0:
-                    mapstr[i][j]="高"
-                elif maplist[i][j] == 1:
-                    mapstr[i][j]="低"
-            elif j == 2:
-                if maplist[i][j] == 0:
-                    mapstr[i][j]="円"
-                elif maplist[i][j] == 1:
-                    mapstr[i][j]="角"
-            elif j == 3:
-                if maplist[i][j] == 0:
-                    mapstr[i][j]="有"
-                elif maplist[i][j] == 1:
-                    mapstr[i][j]="無"
+    for i in range(len(maplist)):
+        for j in range(4):
+            if maplist[i] != '':
+                mapstr[i][j]=piecestr[j][int(maplist[i][j])]
 
     print(mapp.format(mapstr))
 
@@ -68,9 +52,9 @@ def finish():
     return True
 
 def main():
-    print(piece)
-    #print(int(str(piece[15])[-2]))
-    #draw_map()
+    #print(piece)
+    #print(int(piece[15][-2]))
+    draw_map()
 
     while(True):
         give_com()
