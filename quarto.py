@@ -46,6 +46,7 @@ def give_com():
     '''comがplayerにコマを渡します'''
     
     com = random.choice(piece)
+    piece.remove(com)
     print('{0[0]}{0[1]}\n{0[2]}{0[3]}\nを置いてください'
             .format([piecestr[i][int(com[i])] for i in range(4)]))
     
