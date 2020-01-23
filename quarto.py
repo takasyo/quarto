@@ -64,22 +64,18 @@ def finish():
     return True
 
 def main():
-    draw_map()
 
-    for i in range(8):
-        choiced = give_com()
-        #put_player(choiced)
+    for i in range(16):
         #draw_map()
         #if finish():
-        #    print("playerの勝ちです")
         #    break
 
-        #choiced = give_player()
-        put_com(choiced)
-        #draw_map()
-        #if finish():
-            #print("comの勝ちです")
-            #break
+        if i % 2 == 0:
+            choiced = give_com()
+            #put_player(choiced)
+        else:
+            #choiced = give_player()
+            put_com(choiced)
 
 if __name__ == "__main__":
     main()
