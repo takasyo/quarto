@@ -34,21 +34,55 @@ def draw_map():
 def put_player(choiced):
     '''playerがコマを置きます'''
 
+    while(True):
+        posi = input('\n置く場所を入力してください>>')
+
+        if posi == '':
+            while(True):
+                tmp = random.randrange(len(maplist)) #0~15
+                if maplist[tmp] == '':
+                    break
+
+        elif len(posi) != 2:
+            continue
+
+        elif (posi[0] in [str(i) for i in range(1, 1+4)] 
+            and posi[1].upper() in [chr(i) for i in range(65, 65+4)]):
+
+            tmp = int(posi[0]) * 4 + [chr(i) for i in range(65, 65+4)].index(posi[1].upper()) - 4
+
+        elif (posi[1] in [str(i) for i in range(1, 1+4)] 
+            and posi[0].upper() in [chr(i) for i in range(65, 65+4)]):
+            
+            tmp = int(posi[1]) * 4 + [chr(i) for i in range(65, 65+4)].index(posi[0].upper()) - 4
+        
+        else:
+            continue
+        
+        if maplist[tmp] == '':
+            maplist[tmp] = choiced
+            break
+        else:
+            print('空いている場所に置いてください')
+
+    print('\nplayerが{}{}にコマを置きました'
+        .format(['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][tmp%4], ['１', '２', '３', '４'][int(tmp/4)]))        
+
 def put_com(choiced):
     '''comがコマを置きます'''
 
     while(True):
-        tmp = random.randrange(len(maplist))
+        tmp = random.randrange(len(maplist)) #0~15
         if maplist[tmp] == '':
             maplist[tmp] = choiced
             break
     
-    print('comが{}{}にコマを置きました'
+    print('\ncomが{}{}にコマを置きました'
         .format(['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][tmp%4], ['１', '２', '３', '４'][int(tmp/4)]))
 
 def give_player():
     '''playerがcomにコマを渡します'''
-    
+
     for i in range(len(piece)):
         print('{0[0]}{0[1]} '.format([piecestr[j][int(piece[i][j])] for j in range(4)]), end='')
     print()
@@ -57,7 +91,11 @@ def give_player():
     print('\nが残っています')
     
     while(True):
-        num = input('渡すコマの番号を入力してください(1~{})>>'.format(len(piece)))
+        num = input('\n渡すコマの番号を入力してください(1~{})>>'.format(len(piece)))
+
+        if num == '':
+            num = random.randrange(len(piece)) + 1
+
         try:
             num = int(num) - 1
         except:
@@ -78,7 +116,7 @@ def give_com():
     
     com = random.choice(piece)
     piece.remove(com)
-    print('\n{0[0]}{0[1]}\n{0[2]}{0[3]}\nを置いてください'
+    print('{0[0]}{0[1]}\n{0[2]}{0[3]}\nを置いてください'
             .format([piecestr[i][int(com[i])] for i in range(4)]))
     
     return com
@@ -95,8 +133,8 @@ def main():
 
         if i % 2 == 0:
             choiced = give_com()
-            put_com(choiced)
-            #put_player(choiced)
+            # put_com(choiced)
+            put_player(choiced)
         else:
             choiced = give_player()
             put_com(choiced)
