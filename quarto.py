@@ -31,41 +31,43 @@ def draw_map():
 
     print(mapp.format(mapstr))
 
-def put_player():
+def put_player(choiced):
     '''playerがコマを置きます'''
 
-def put_com():
+def put_com(choiced):
     '''comがコマを置きます'''
 
 def give_player():
     '''playerがcomにコマを渡します'''
 
+    return 
+
 def give_com():
     '''comがplayerにコマを渡します'''
     
-    ran = random.choice(piece)
-    #print(ran)
-    #print(int(str(ran)[0]))
+    com = random.choice(piece)
+    print('{0[0]}{0[1]}\n{0[2]}{0[3]}\nを置いてください'
+            .format([piecestr[i][int(com[i])] for i in range(4)]))
+    
+    return com
 
 def finish():
     #print("quartoです")
     return True
 
 def main():
-    #print(piece)
-    #print(int(piece[15][-2]))
     draw_map()
 
     while(True):
-        give_com()
-        put_player()
+        choiced = give_com()
+        put_player(choiced)
         #draw_map()
         #if finish():
         #    print("playerの勝ちです")
         #    break
 
-        give_player()
-        put_com()
+        choiced = give_player()
+        put_com(choiced)
         #draw_map()
         if finish():
             #print("comの勝ちです")
