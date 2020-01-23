@@ -37,6 +37,13 @@ def put_player(choiced):
 def put_com(choiced):
     '''comがコマを置きます'''
 
+    while(True):
+        tmp = random.randrange(len(maplist))
+        if maplist[tmp] == '':
+            maplist[tmp] = choiced
+            break
+    print(maplist)
+
 def give_player():
     '''playerがcomにコマを渡します'''
 
@@ -59,20 +66,20 @@ def finish():
 def main():
     draw_map()
 
-    while(True):
+    for i in range(8):
         choiced = give_com()
-        put_player(choiced)
+        #put_player(choiced)
         #draw_map()
         #if finish():
         #    print("playerの勝ちです")
         #    break
 
-        choiced = give_player()
+        #choiced = give_player()
         put_com(choiced)
         #draw_map()
-        if finish():
+        #if finish():
             #print("comの勝ちです")
-            break
+            #break
 
 if __name__ == "__main__":
     main()
