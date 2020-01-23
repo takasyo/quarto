@@ -42,19 +42,42 @@ def put_com(choiced):
         if maplist[tmp] == '':
             maplist[tmp] = choiced
             break
-    print(maplist)
+        
+    print('comがコマを置きました')
 
 def give_player():
     '''playerがcomにコマを渡します'''
 
-    return 
+    for i in range(len(piece)):
+        print('{0[0]}{0[1]} '.format([piecestr[j][int(piece[i][j])] for j in range(4)]), end='')
+    print()
+    for i in range(len(piece)):
+        print('{0[2]}{0[3]} '.format([piecestr[j][int(piece[i][j])] for j in range(4)]), end='')
+    print('\nが残っています')
+
+    while(True):
+        num = input('渡すコマの番号を入力してください(1~{})>>'.format(len(piece)))
+        try:
+            num = int(num) - 1
+        except:
+            continue
+    
+        if 0 <= num <= len(piece) - 1:
+            break
+
+    player = piece[num]
+    piece.remove(player)
+    print('\n{0[0]}{0[1]}\n{0[2]}{0[3]}\nを渡します'
+            .format([piecestr[i][int(player[i])] for i in range(4)]))
+    
+    return player
 
 def give_com():
     '''comがplayerにコマを渡します'''
     
     com = random.choice(piece)
     piece.remove(com)
-    print('{0[0]}{0[1]}\n{0[2]}{0[3]}\nを置いてください'
+    print('\n{0[0]}{0[1]}\n{0[2]}{0[3]}\nを置いてください'
             .format([piecestr[i][int(com[i])] for i in range(4)]))
     
     return com
@@ -64,18 +87,21 @@ def finish():
     return True
 
 def main():
+    draw_map()
 
     for i in range(16):
-        #draw_map()
-        #if finish():
-        #    break
 
         if i % 2 == 0:
             choiced = give_com()
+            put_com(choiced)
             #put_player(choiced)
         else:
-            #choiced = give_player()
+            choiced = give_player()
             put_com(choiced)
+            
+        draw_map()
+        #if finish():
+        #    break
 
 if __name__ == "__main__":
     main()
