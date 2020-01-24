@@ -1,4 +1,5 @@
 import random
+import sys
 
 mapp="""
 {1[8]}　｜Ａ{1[4]}｜Ｂ{1[5]}｜Ｃ{1[6]}｜Ｄ{1[7]}｜{1[9]}
@@ -17,15 +18,13 @@ mapp="""
 ＿＿丄＿＿丄＿＿丄＿＿丄＿＿」
 """
 search=[
-    [0,1,2,3], [4,5,6,7], [8,9,10,11], [12,13,14,15],
-    [0,4,8,12], [1,5,9,13], [2,6,10,14], [3,7,11,15],
-    [0,5,10,15], [3,6,9,12]
+    [0,1,2,3], [4,5,6,7], [8,9,10,11], [12,13,14,15], [0,4,8,12], 
+    [1,5,9,13], [2,6,10,14], [3,7,11,15], [0,5,10,15], [3,6,9,12]
     ]
 maplist = [''] * 16
 mapstr = [['　'] * 4 for i in range(16)]
 piece = [format(i, '04b') for i in range(16)] #0000~1111
 piecestr = [['黒', '白'], ['高', '低'], ['円', '角'], ['有', '無']]
-quarto_mark = ['　'] * len(search)
 
 def draw_map(search_index=None, str_index_list=None):
     '''
@@ -174,4 +173,17 @@ def main():
         draw_map()
 
 if __name__ == "__main__":
+    args = sys.argv
+    if len(args) >= 2 and args[1].lower() == 'hard':
+        print('hard mode')
+        search[len(search):len(search)] = [
+            [0,1,4,5], [1,2,5,6], [2,3,6,7], [4,5,8,9], [5,6,9,10], 
+            [6,7,10,11], [8,9,12,13], [9,10,13,14],[10,11,14,15]
+        ]
+    else:
+        print('nomal mode')
+    
+    global quarto_mark
+    quarto_mark = ['　'] * len(search)
+    
     main()
