@@ -16,9 +16,14 @@ mapp="""
 　　｜{0[12][2]}{0[12][3]}｜{0[13][2]}{0[13][3]}｜{0[14][2]}{0[14][3]}｜{0[15][2]}{0[15][3]}｜
 ＿＿丄＿＿丄＿＿丄＿＿丄＿＿」
 """
+search=[
+    [0,1,2,3], [4,5,6,7], [8,9,10,11], [12,13,14,15],
+    [0,4,8,12], [1,5,9,13], [2,6,10,14], [3,7,11,15],
+    [0,5,10,15], [3,6,9,12]
+    ]
 maplist = [''] * 16
 mapstr = [["　"] * 4 for i in range(16)]
-piece = [format(i, '04b') for i in range(16)]
+piece = [format(i, '04b') for i in range(16)] #0000~1111
 piecestr = [['黒', '白'], ['高', '低'], ['円', '角'], ['有', '無']]
 
 def draw_map():
@@ -122,9 +127,25 @@ def give_com():
     return com
 
 def finish():
-    #draw_map()
-    #print("quartoです")
-    return True
+    
+    for i in range(len(search)): # 0~8
+        tmp = [1] * 4
+        empty = True
+        for search_index in search[i]: #ex)[0, 4, 8, 12]
+            if maplist[search_index] == '':
+                empty = False
+                break
+
+            for match_index in [x for x, y in enumerate(tmp) if y == 1]: # tmpが1のindexだけ調べる
+                if maplist[search[i][0]][match_index] != maplist[search_index][match_index]:
+                    tmp[match_index] = 0
+            
+        if 1 in tmp and empty: # tmpに1つでも1がある
+            print("quartoです")   
+            draw_map() 
+            return True
+
+    return False
 
 def main():
     draw_map()
@@ -133,14 +154,13 @@ def main():
 
         if i % 2 == 0:
             choiced = give_com()
-            # put_com(choiced)
             put_player(choiced)
         else:
             choiced = give_player()
             put_com(choiced)
             
-        #if finish():
-        #    break
+        if finish():
+            break
 
         draw_map()
 
