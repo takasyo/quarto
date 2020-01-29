@@ -5,7 +5,6 @@ import textwrap
 class Qarto(object):
 
     def __init__(self, mode=True):
-
         self.mapp=textwrap.dedent("""
         {1[8]}　｜Ａ{1[4]}｜Ｂ{1[5]}｜Ｃ{1[6]}｜Ｄ{1[7]}｜{1[9]}
         ＿＿丄＿＿丄＿＿丄＿＿丄＿＿」
@@ -40,12 +39,12 @@ class Qarto(object):
         self.quarto_mark = ['　'] * len(self.search)
 
     
+    '''
+    マップを描写します
+    search_index = 0 ~ len(self.search)
+    str_index_list = 0 ~ 3
+    '''
     def draw_map(self, search_index=None, str_index_list=None):
-        '''
-        マップを描写します
-        search_index = 0 ~ len(self.search)
-        str_index_list = 0 ~ 3
-        '''
     
         for i in range(len(self.maplist)):
             for j in range(4):
@@ -58,8 +57,9 @@ class Qarto(object):
         
         print(self.mapp.format(self.mapstr, self.quarto_mark))
     
+
+    '''playerがコマを置きます'''
     def put_player(self, choiced):
-        '''playerがコマを置きます'''
     
         while(True):
             posi = input('\n置く場所を入力してください>>')
@@ -94,9 +94,11 @@ class Qarto(object):
     
         print('\nplayerが{}{}にコマを置きました'
             .format(['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][tmp%4], ['１', '２', '３', '４'][int(tmp/4)]))        
+
     
+
+    '''comがコマを置きます'''
     def put_com(self, choiced):
-        '''comがコマを置きます'''
     
         while(True):
             tmp = random.randrange(len(self.maplist)) #0~15
@@ -107,9 +109,9 @@ class Qarto(object):
         print('\ncomが{}{}にコマを置きました'
             .format(['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][tmp%4], ['１', '２', '３', '４'][int(tmp/4)]))
     
+
+    '''playerがcomにコマを渡します'''
     def give_player(self):
-        '''playerがcomにコマを渡します'''
-    
         for i in range(len(self.piece)):
             print('{0[0]}{0[1]} '.format([self.piecestr[j][int(self.piece[i][j])] for j in range(4)]), end='')
         print()
@@ -137,16 +139,17 @@ class Qarto(object):
                 .format([self.piecestr[i][int(player[i])] for i in range(4)]))
         
         return player
+
     
+    '''comがplayerにコマを渡します'''
     def give_com(self):
-        '''comがplayerにコマを渡します'''
-        
         com = random.choice(self.piece)
         self.piece.remove(com)
         print('{0[0]}{0[1]}\n{0[2]}{0[3]}\nを置いてください'
                 .format([self.piecestr[i][int(com[i])] for i in range(4)]))
         
         return com
+
     
     def finish(self, _maplist):
         
@@ -169,6 +172,7 @@ class Qarto(object):
     
         return False
     
+
     def main(self):
         self.draw_map()
     
@@ -185,6 +189,7 @@ class Qarto(object):
                 break
     
             self.draw_map()
+
 
 if __name__ == "__main__":
     args = sys.argv
