@@ -1,10 +1,16 @@
 import random
 import sys
 import textwrap
+from enum import Enum
+
+
+class Difficulty(Enum):
+    NORMAL = 1
+    HARD = 1
+
 
 class Qarto(object):
-
-    def __init__(self, mode=True):
+    def __init__(self, game_mode=Difficulty.NORMAL):
         self.mapp=textwrap.dedent("""
         {1[8]}　｜Ａ{1[4]}｜Ｂ{1[5]}｜Ｃ{1[6]}｜Ｄ{1[7]}｜{1[9]}
         ＿＿丄＿＿丄＿＿丄＿＿丄＿＿」
@@ -26,7 +32,7 @@ class Qarto(object):
             [1,5,9,13], [2,6,10,14], [3,7,11,15], [0,5,10,15], [3,6,9,12]
             ]
 
-        if mode == False:
+        if game_mode == Difficulty.HARD:
             self.search[len(self.search):len(self.search)] = [
                 [0,1,4,5], [1,2,5,6], [2,3,6,7], [4,5,8,9], [5,6,9,10], 
                 [6,7,10,11], [8,9,12,13], [9,10,13,14],[10,11,14,15]
@@ -45,7 +51,6 @@ class Qarto(object):
     str_index_list = 0 ~ 3
     '''
     def draw_map(self, search_index=None, str_index_list=None):
-    
         for i in range(len(self.maplist)):
             for j in range(4):
                 if self.maplist[i] != '':
@@ -60,7 +65,6 @@ class Qarto(object):
 
     '''playerがコマを置きます'''
     def put_player(self, choiced):
-    
         while(True):
             posi = input('\n置く場所を入力してください>>')
     
@@ -69,20 +73,16 @@ class Qarto(object):
                     tmp = random.randrange(len(self.maplist)) #0~15
                     if self.maplist[tmp] == '':
                         break
-    
             elif len(posi) != 2:
                 continue
-    
             elif (posi[0] in [str(i) for i in range(1, 1+4)] 
                 and posi[1].upper() in [chr(i) for i in range(65, 65+4)]):
     
                 tmp = (int(posi[0]) - 1) * 4 + [chr(i) for i in range(65, 65+4)].index(posi[1].upper())
-    
             elif (posi[1] in [str(i) for i in range(1, 1+4)] 
                 and posi[0].upper() in [chr(i) for i in range(65, 65+4)]):
                 
                 tmp = (int(posi[1]) - 1) * 4 + [chr(i) for i in range(65, 65+4)].index(posi[0].upper())
-            
             else:
                 continue
             
@@ -99,7 +99,6 @@ class Qarto(object):
 
     '''comがコマを置きます'''
     def put_com(self, choiced):
-    
         while(True):
             tmp = random.randrange(len(self.maplist)) #0~15
             if self.maplist[tmp] == '':
@@ -152,7 +151,6 @@ class Qarto(object):
 
     
     def finish(self, _maplist):
-        
         for i in range(len(self.search)): # 0~9 or 0~18
             tmp = [1] * 4
             empty = False
@@ -175,9 +173,7 @@ class Qarto(object):
 
     def main(self):
         self.draw_map()
-    
         for i in range(16):
-    
             if i % 2 == 0:
                 choiced = self.give_com()
                 self.put_player(choiced)
@@ -195,11 +191,9 @@ if __name__ == "__main__":
     args = sys.argv
     if len(args) >= 2 and args[1].lower() == 'hard':
         print('hard mode')
-        mode=False
-        
+        qa = Qarto(Difficulty.HARD)
     else:
         print('nomal mode')
-        mode=True
+        qa = Qarto(Difficulty.NORMAL)
 
-    qa = Qarto(mode)
     qa.main()
