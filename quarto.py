@@ -1,12 +1,17 @@
 import random
 import sys
 import textwrap
-from enum import Enum
+from enum import Enum, IntEnum
 
 
 class Difficulty(Enum):
-    NORMAL = 1
+    NORMAL = 0
     HARD = 1
+
+
+class Turn(IntEnum):
+    PLAYER = 0
+    COM = 1
 
 
 class Qarto(object):
@@ -63,54 +68,54 @@ class Qarto(object):
         print(self.mapp.format(self.mapstr, self.quarto_mark))
     
 
-    '''playerがコマを置きます'''
-    def put_player(self, choiced):
+    ''' 利用可能なランダムなマスのインデックスを選ぶ '''
+    def select_random_available_square_index(self):
         while(True):
-            posi = input('\n置く場所を入力してください>>')
+            selected_index = random.randrange(len(self.maplist))
+            if self.maplist[selected_index] == '': #0~15
+                break
+        return selected_index
+    
+
+    '''playerがコマを置きます'''
+    def put_piece_by_player(self, choiced_piece):
+        while(True):
+            posi = sorted(input('\n置く場所を入力してください>>'))
     
             if posi == '':
-                while(True):
-                    tmp = random.randrange(len(self.maplist)) #0~15
-                    if self.maplist[tmp] == '':
-                        break
+                selected_index = self.select_random_available_square_index() #0~15
             elif len(posi) != 2:
                 continue
-            elif (posi[0] in [str(i) for i in range(1, 1+4)] 
+
+            if (posi[0] in [str(i) for i in range(1, 1+4)] 
                 and posi[1].upper() in [chr(i) for i in range(65, 65+4)]):
-    
-                tmp = (int(posi[0]) - 1) * 4 + [chr(i) for i in range(65, 65+4)].index(posi[1].upper())
-            elif (posi[1] in [str(i) for i in range(1, 1+4)] 
-                and posi[0].upper() in [chr(i) for i in range(65, 65+4)]):
-                
-                tmp = (int(posi[1]) - 1) * 4 + [chr(i) for i in range(65, 65+4)].index(posi[0].upper())
+                selected_index = (int(posi[0]) - 1) * 4 + [chr(i) for i in range(65, 65+4)].index(posi[1].upper())
             else:
                 continue
             
-            if self.maplist[tmp] == '':
-                self.maplist[tmp] = choiced
+            if self.maplist[selected_index] == '':
+                self.maplist[selected_index] = choiced_piece
                 break
             else:
                 print('空いている場所に置いてください')
     
         print('\nplayerが{}{}にコマを置きました'
-            .format(['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][tmp%4], ['１', '２', '３', '４'][int(tmp/4)]))        
+            .format(['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][selected_index % 4],
+                    ['１', '２', '３', '４'][int(selected_index/4)]))        
 
-    
 
     '''comがコマを置きます'''
-    def put_com(self, choiced):
-        while(True):
-            tmp = random.randrange(len(self.maplist)) #0~15
-            if self.maplist[tmp] == '':
-                self.maplist[tmp] = choiced
-                break
+    def put_piece_by_com(self, choiced_piece):
+        selected_index = self.select_random_available_square_index()
+        self.maplist[selected_index] = choiced_piece
         
         print('\ncomが{}{}にコマを置きました'
-            .format(['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][tmp%4], ['１', '２', '３', '４'][int(tmp/4)]))
+            .format(['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][selected_index % 4],
+                    ['１', '２', '３', '４'][int(selected_index/4)]))
     
 
     '''playerがcomにコマを渡します'''
-    def give_player(self):
+    def give_piece_to_com(self):
         for i in range(len(self.piece)):
             print('{0[0]}{0[1]} '.format([self.piecestr[j][int(self.piece[i][j])] for j in range(4)]), end='')
         print()
@@ -141,7 +146,7 @@ class Qarto(object):
 
     
     '''comがplayerにコマを渡します'''
-    def give_com(self):
+    def give_piece_to_player(self):
         com = random.choice(self.piece)
         self.piece.remove(com)
         print('{0[0]}{0[1]}\n{0[2]}{0[3]}\nを置いてください'
@@ -174,12 +179,12 @@ class Qarto(object):
     def main(self):
         self.draw_map()
         for i in range(16):
-            if i % 2 == 0:
-                choiced = self.give_com()
-                self.put_player(choiced)
+            if i % 2 == Turn.PLAYER:
+                choiced_piece = self.give_piece_to_player()
+                self.put_piece_by_player(choiced_piece)
             else:
-                choiced = self.give_player()
-                self.put_com(choiced)
+                choiced_piece = self.give_piece_to_com()
+                self.put_piece_by_com(choiced_piece)
                 
             if self.finish(self.maplist):
                 break
