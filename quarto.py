@@ -39,7 +39,6 @@ class Qarto(object):
         self.piecestr = [['黒', '白'], ['高', '低'], ['円', '角'], ['有', '無']]
         self.quarto_mark = ['　'] * len(self.search)
 
-    
     def draw_map(self, search_index=None, str_index_list=None):
         '''
         マップを描写します
@@ -111,6 +110,9 @@ class Qarto(object):
         '''playerがcomにコマを渡します'''
     
         for i in range(len(self.piece)):
+            print('{:02} 　'.format(i + 1), end='')
+        print()
+        for i in range(len(self.piece)):
             print('{0[0]}{0[1]} '.format([self.piecestr[j][int(self.piece[i][j])] for j in range(4)]), end='')
         print()
         for i in range(len(self.piece)):
@@ -166,6 +168,9 @@ class Qarto(object):
                 print("quartoです")   
                 self.draw_map(i, tmp.index(1)) 
                 return True
+
+        if '' not in _maplist:
+            print("引き分けです")
     
         return False
     
