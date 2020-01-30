@@ -158,17 +158,18 @@ class Qarto(object):
     def finish(self, _maplist):
         for i in range(len(self.search)): # 0~9 or 0~18
             tmp = [1] * 4
-            empty = False
-            for self.search_index in self.search[i]: #ex)[0, 4, 8, 12]
-                if _maplist[self.search_index] == '':
-                    empty = True
+            has_empty_slot = False
+            for search_index in self.search[i]: #ex)[0, 4, 8, 12]
+                if _maplist[search_index] == '':
+                    has_empty_slot = True
                     break
     
-                for str_index in [x for x, y in enumerate(tmp) if y == 1]: # tmpが1のindexだけ調べる
-                    if _maplist[self.search[i][0]][str_index] != _maplist[self.search_index][str_index]:
+                for str_index in [x for x, y in enumerate(tmp) if y == 1]: 
+                    # tmpが1のindexだけ調べる
+                    if _maplist[self.search[i][0]][str_index] != _maplist[search_index][str_index]:
                         tmp[str_index] = 0
                 
-            if 1 in tmp and empty is False: # tmpに1つでも1がある
+            if 1 in tmp and has_empty_slot is False: # tmpに1つでも1があるかつコマを置いていないスロットがある
                 print("quartoです")   
                 self.draw_map(i, tmp.index(1)) 
                 return True
