@@ -1,11 +1,21 @@
 import random
 import sys
 import textwrap
+from enum import Enum, IntEnum
+
+
+class Difficulty(Enum):
+    NORMAL = 0
+    HARD = 1
+
+
+class Turn(IntEnum):
+    PLAYER = 0
+    COM = 1
+
 
 class Qarto(object):
-
-    def __init__(self, mode=True):
-
+    def __init__(self, game_mode=Difficulty.NORMAL):
         self.mapp=textwrap.dedent("""
         {1[8]}　｜Ａ{1[4]}｜Ｂ{1[5]}｜Ｃ{1[6]}｜Ｄ{1[7]}｜{1[9]}
         ＿＿丄＿＿丄＿＿丄＿＿丄＿＿」
@@ -27,7 +37,7 @@ class Qarto(object):
             [1,5,9,13], [2,6,10,14], [3,7,11,15], [0,5,10,15], [3,6,9,12]
             ]
 
-        if mode == False:
+        if game_mode == Difficulty.HARD:
             self.search[len(self.search):len(self.search)] = [
                 [0,1,4,5], [1,2,5,6], [2,3,6,7], [4,5,8,9], [5,6,9,10], 
                 [6,7,10,11], [8,9,12,13], [9,10,13,14],[10,11,14,15]
@@ -39,13 +49,8 @@ class Qarto(object):
         self.piecestr = [['黒', '白'], ['高', '低'], ['円', '角'], ['有', '無']]
         self.quarto_mark = ['　'] * len(self.search)
 
+    ''' マップの描画 '''
     def draw_map(self, search_index=None, str_index_list=None):
-        '''
-        マップを描写します
-        search_index = 0 ~ len(self.search)
-        str_index_list = 0 ~ 3
-        '''
-    
         for i in range(len(self.maplist)):
             for j in range(4):
                 if self.maplist[i] != '':
@@ -57,58 +62,55 @@ class Qarto(object):
         
         print(self.mapp.format(self.mapstr, self.quarto_mark))
     
-    def put_player(self, choiced):
-        '''playerがコマを置きます'''
-    
+
+    ''' 利用可能なランダムなマスのインデックスを選ぶ '''
+    def select_random_available_square_index(self):
         while(True):
-            posi = input('\n置く場所を入力してください>>')
+            selected_index = random.randrange(len(self.maplist))
+            if self.maplist[selected_index] == '': #0~15
+                break
+        return selected_index
+    
+
+    '''playerがコマを置きます'''
+    def put_piece_by_player(self, choiced_piece):
+        while(True):
+            posi = sorted(input('\n置く場所を入力してください>>'))
     
             if posi == '':
-                while(True):
-                    tmp = random.randrange(len(self.maplist)) #0~15
-                    if self.maplist[tmp] == '':
-                        break
-    
+                selected_index = self.select_random_available_square_index() #0~15
             elif len(posi) != 2:
                 continue
-    
-            elif (posi[0] in [str(i) for i in range(1, 1+4)] 
+
+            if (posi[0] in [str(i) for i in range(1, 1+4)] 
                 and posi[1].upper() in [chr(i) for i in range(65, 65+4)]):
-    
-                tmp = (int(posi[0]) - 1) * 4 + [chr(i) for i in range(65, 65+4)].index(posi[1].upper())
-    
-            elif (posi[1] in [str(i) for i in range(1, 1+4)] 
-                and posi[0].upper() in [chr(i) for i in range(65, 65+4)]):
-                
-                tmp = (int(posi[1]) - 1) * 4 + [chr(i) for i in range(65, 65+4)].index(posi[0].upper())
-            
+                selected_index = (int(posi[0]) - 1) * 4 + [chr(i) for i in range(65, 65+4)].index(posi[1].upper())
             else:
                 continue
             
-            if self.maplist[tmp] == '':
-                self.maplist[tmp] = choiced
+            if self.maplist[selected_index] == '':
+                self.maplist[selected_index] = choiced_piece
                 break
             else:
                 print('空いている場所に置いてください')
     
         print('\nplayerが{}{}にコマを置きました'
-            .format(['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][tmp%4], ['１', '２', '３', '４'][int(tmp/4)]))        
-    
-    def put_com(self, choiced):
-        '''comがコマを置きます'''
-    
-        while(True):
-            tmp = random.randrange(len(self.maplist)) #0~15
-            if self.maplist[tmp] == '':
-                self.maplist[tmp] = choiced
-                break
+            .format(['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][selected_index % 4],
+                    ['１', '２', '３', '４'][int(selected_index/4)]))        
+
+
+    '''comがコマを置きます'''
+    def put_piece_by_com(self, choiced_piece):
+        selected_index = self.select_random_available_square_index()
+        self.maplist[selected_index] = choiced_piece
         
         print('\ncomが{}{}にコマを置きました'
-            .format(['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][tmp%4], ['１', '２', '３', '４'][int(tmp/4)]))
+            .format(['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][selected_index % 4],
+                    ['１', '２', '３', '４'][int(selected_index/4)]))
     
-    def give_player(self):
-        '''playerがcomにコマを渡します'''
-    
+
+    '''playerがcomにコマを渡します'''
+    def give_piece_to_com(self):
         for i in range(len(self.piece)):
             print('{:02} 　'.format(i + 1), end='')
         print()
@@ -139,32 +141,33 @@ class Qarto(object):
                 .format([self.piecestr[i][int(player[i])] for i in range(4)]))
         
         return player
+
     
-    def give_com(self):
-        '''comがplayerにコマを渡します'''
-        
+    '''comがplayerにコマを渡します'''
+    def give_piece_to_player(self):
         com = random.choice(self.piece)
         self.piece.remove(com)
         print('{0[0]}{0[1]}\n{0[2]}{0[3]}\nを置いてください'
                 .format([self.piecestr[i][int(com[i])] for i in range(4)]))
         
         return com
+
     
     def finish(self, _maplist):
-        
         for i in range(len(self.search)): # 0~9 or 0~18
             tmp = [1] * 4
-            empty = False
-            for self.search_index in self.search[i]: #ex)[0, 4, 8, 12]
-                if _maplist[self.search_index] == '':
-                    empty = True
+            has_empty_slot = False
+            for search_index in self.search[i]: #ex)[0, 4, 8, 12]
+                if _maplist[search_index] == '':
+                    has_empty_slot = True
                     break
     
-                for str_index in [x for x, y in enumerate(tmp) if y == 1]: # tmpが1のindexだけ調べる
-                    if _maplist[self.search[i][0]][str_index] != _maplist[self.search_index][str_index]:
+                for str_index in [x for x, y in enumerate(tmp) if y == 1]: 
+                    # tmpが1のindexだけ調べる
+                    if _maplist[self.search[i][0]][str_index] != _maplist[search_index][str_index]:
                         tmp[str_index] = 0
                 
-            if 1 in tmp and empty is False: # tmpに1つでも1がある
+            if 1 in tmp and has_empty_slot is False: # tmpに1つでも1があるかつコマを置いていないスロットがある
                 print("quartoです")   
                 self.draw_map(i, tmp.index(1)) 
                 return True
@@ -174,32 +177,30 @@ class Qarto(object):
     
         return False
     
+
     def main(self):
         self.draw_map()
-    
         for i in range(16):
-    
-            if i % 2 == 0:
-                choiced = self.give_com()
-                self.put_player(choiced)
+            if i % 2 == Turn.PLAYER:
+                choiced_piece = self.give_piece_to_player()
+                self.put_piece_by_player(choiced_piece)
             else:
-                choiced = self.give_player()
-                self.put_com(choiced)
+                choiced_piece = self.give_piece_to_com()
+                self.put_piece_by_com(choiced_piece)
                 
             if self.finish(self.maplist):
                 break
     
             self.draw_map()
 
+
 if __name__ == "__main__":
     args = sys.argv
     if len(args) >= 2 and args[1].lower() == 'hard':
         print('hard mode')
-        mode=False
-        
+        qa = Qarto(Difficulty.HARD)
     else:
         print('nomal mode')
-        mode=True
+        qa = Qarto(Difficulty.NORMAL)
 
-    qa = Qarto(mode)
     qa.main()
