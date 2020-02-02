@@ -2,6 +2,9 @@ import random
 import sys
 import textwrap
 from enum import Enum, IntEnum
+from Player import Player, NPC
+from GameInfo import FieldInfo
+from View import View
 
 
 class Difficulty(Enum):
@@ -11,196 +14,124 @@ class Difficulty(Enum):
 
 class Turn(IntEnum):
     PLAYER = 0
-    COM = 1
+    NPC = 1
 
 
 class Qarto(object):
-    def __init__(self, game_mode=Difficulty.NORMAL):
-        self.mapp=textwrap.dedent("""
-        {1[8]}　｜Ａ{1[4]}｜Ｂ{1[5]}｜Ｃ{1[6]}｜Ｄ{1[7]}｜{1[9]}
-        ＿＿丄＿＿丄＿＿丄＿＿丄＿＿」
-        １　｜{0[0][0]}{0[0][1]}｜{0[1][0]}{0[1][1]}｜{0[2][0]}{0[2][1]}｜{0[3][0]}{0[3][1]}｜
-        {1[0]}　｜{0[0][2]}{0[0][3]}｜{0[1][2]}{0[1][3]}｜{0[2][2]}{0[2][3]}｜{0[3][2]}{0[3][3]}｜
-        ＿＿丄＿＿丄＿＿丄＿＿丄＿＿」
-        ２　｜{0[4][0]}{0[4][1]}｜{0[5][0]}{0[5][1]}｜{0[6][0]}{0[6][1]}｜{0[7][0]}{0[7][1]}｜
-        {1[1]}　｜{0[4][2]}{0[4][3]}｜{0[5][2]}{0[5][3]}｜{0[6][2]}{0[6][3]}｜{0[7][2]}{0[7][3]}｜
-        ＿＿丄＿＿丄＿＿丄＿＿丄＿＿」
-        ３　｜{0[8][0]}{0[8][1]}｜{0[9][0]}{0[9][1]}｜{0[10][0]}{0[10][1]}｜{0[11][0]}{0[11][1]}｜
-        {1[2]}　｜{0[8][2]}{0[8][3]}｜{0[9][2]}{0[9][3]}｜{0[10][2]}{0[10][3]}｜{0[11][2]}{0[11][3]}｜
-        ＿＿丄＿＿丄＿＿丄＿＿丄＿＿」
-        ４　｜{0[12][0]}{0[12][1]}｜{0[13][0]}{0[13][1]}｜{0[14][0]}{0[14][1]}｜{0[15][0]}{0[15][1]}｜
-        {1[3]}　｜{0[12][2]}{0[12][3]}｜{0[13][2]}{0[13][3]}｜{0[14][2]}{0[14][3]}｜{0[15][2]}{0[15][3]}｜
-        ＿＿丄＿＿丄＿＿丄＿＿丄＿＿」
-        """)
-        self.search=[
-            [0,1,2,3], [4,5,6,7], [8,9,10,11], [12,13,14,15], [0,4,8,12], 
-            [1,5,9,13], [2,6,10,14], [3,7,11,15], [0,5,10,15], [3,6,9,12]
-            ]
+    def __init__(self, _game_mode=Difficulty.NORMAL):
+        self.view = View()
+        self.npc = NPC("Alice")
+        self.player = Player("Bob")
 
-        if game_mode == Difficulty.HARD:
-            self.search[len(self.search):len(self.search)] = [
-                [0,1,4,5], [1,2,5,6], [2,3,6,7], [4,5,8,9], [5,6,9,10], 
-                [6,7,10,11], [8,9,12,13], [9,10,13,14],[10,11,14,15]
-            ]
-        
-        self.maplist = [''] * 16
-        self.mapstr = [['　'] * 4 for _ in range(16)]
-        self.piece = [format(i, '04b') for i in range(16)] #0000~1111
-        self.piecestr = [['黒', '白'], ['高', '低'], ['円', '角'], ['有', '無']]
-        self.quarto_mark = ['　'] * len(self.search)
-
-    ''' マップの描画 '''
-    def draw_map(self, search_index=None, str_index_list=None):
-        for i in range(len(self.maplist)):
-            for j in range(4):
-                if self.maplist[i] != '':
-                    self.mapstr[i][j] = self.piecestr[j][int(self.maplist[i][j])]
-    
-        if type(search_index) == int:
-            tmp = self.maplist[self.search[search_index][0]][str_index_list]
-            self.quarto_mark[search_index] = self.piecestr[str_index_list][int(tmp)]
-        
-        print(self.mapp.format(self.mapstr, self.quarto_mark))
-    
-
-    ''' 利用可能なランダムなマスのインデックスを選ぶ '''
-    def select_random_available_square_index(self):
-        while(True):
-            selected_index = random.randrange(len(self.maplist))
-            if self.maplist[selected_index] == '': #0~15
-                break
-        return selected_index
-    
-
-    '''playerがコマを置きます'''
-    def put_piece_by_player(self, choiced_piece):
-        while(True):
-            posi = sorted(input('\n置く場所を入力してください>>'))
-    
-            if posi == '':
-                selected_index = self.select_random_available_square_index() #0~15
-            elif len(posi) != 2:
-                continue
-
-            if (posi[0] in [str(i) for i in range(1, 1+4)] 
-                and posi[1].upper() in [chr(i) for i in range(65, 65+4)]):
-                selected_index = (int(posi[0]) - 1) * 4 + [chr(i) for i in range(65, 65+4)].index(posi[1].upper())
-            else:
-                continue
-            
-            if self.maplist[selected_index] == '':
-                self.maplist[selected_index] = choiced_piece
-                break
-            else:
-                print('空いている場所に置いてください')
-    
-        print('\nplayerが{}{}にコマを置きました'
-            .format(['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][selected_index % 4],
-                    ['１', '２', '３', '４'][int(selected_index/4)]))        
+        if _game_mode == Difficulty.HARD:
+            FieldInfo.changeDifficulty
+            self.view.dispTitleHard()
+        else:
+            self.view.dispTitleNormal()
 
 
-    '''comがコマを置きます'''
-    def put_piece_by_com(self, choiced_piece):
-        selected_index = self.select_random_available_square_index()
-        self.maplist[selected_index] = choiced_piece
-        
-        print('\ncomが{}{}にコマを置きました'
-            .format(['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][selected_index % 4],
-                    ['１', '２', '３', '４'][int(selected_index/4)]))
-    
-
-    '''playerがcomにコマを渡します'''
-    def give_piece_to_com(self):
-        for i in range(len(self.piece)):
-            print('{:02} 　'.format(i + 1), end='')
-        print()
-        for i in range(len(self.piece)):
-            print('{0[0]}{0[1]} '.format([self.piecestr[j][int(self.piece[i][j])] for j in range(4)]), end='')
-        print()
-        for i in range(len(self.piece)):
-            print('{0[2]}{0[3]} '.format([self.piecestr[j][int(self.piece[i][j])] for j in range(4)]), end='')
-        print('\nが残っています')
-        
-        while(True):
-            num = input('\n渡すコマの番号を入力してください(1~{})>>'.format(len(self.piece)))
-    
-            if num == '':
-                num = random.randrange(len(self.piece)) + 1
-    
-            try:
-                num = int(num) - 1
-            except:
-                continue
-            
-            if 0 <= num <= len(self.piece) - 1:
-                break
-        
-        player = self.piece[num]
-        self.piece.remove(player)
-        print('\n{0[0]}{0[1]}\n{0[2]}{0[3]}\nを渡します'
-                .format([self.piecestr[i][int(player[i])] for i in range(4)]))
-        
-        return player
-
-    
-    '''comがplayerにコマを渡します'''
-    def give_piece_to_player(self):
-        com = random.choice(self.piece)
-        self.piece.remove(com)
-        print('{0[0]}{0[1]}\n{0[2]}{0[3]}\nを置いてください'
-                .format([self.piecestr[i][int(com[i])] for i in range(4)]))
-        
-        return com
-
-    
-    def finish(self, _maplist):
-        for i in range(len(self.search)): # 0~9 or 0~18
+    def gameIsOver(self, _current_player):
+        for i in range(len(FieldInfo.clear_patterns)): # 0~9 or 0~18
             tmp = [1] * 4
             has_empty_slot = False
-            for search_index in self.search[i]: #ex)[0, 4, 8, 12]
-                if _maplist[search_index] == '':
+            for search_index in FieldInfo.clear_patterns[i]: #ex)[0, 4, 8, 12]
+                if FieldInfo.selectedSlotIsEmpty(search_index):
                     has_empty_slot = True
                     break
     
                 for str_index in [x for x, y in enumerate(tmp) if y == 1]: 
                     # tmpが1のindexだけ調べる
-                    if _maplist[self.search[i][0]][str_index] != _maplist[search_index][str_index]:
+                    if FieldInfo.field_status[FieldInfo.clear_patterns[i][0]][str_index] != FieldInfo.field_status[search_index][str_index]:
                         tmp[str_index] = 0
-                
-            if 1 in tmp and has_empty_slot is False: # tmpに1つでも1があるかつコマを置いていないスロットがある
-                print("quartoです")   
-                self.draw_map(i, tmp.index(1)) 
+
+            # tmpに1つでも1があるかつ全てのスロットにコマを置いている 
+            if 1 in tmp and has_empty_slot is False:
+                self.view.dispGameIsOver(_current_player.name)
+                self.view.drawField(i, tmp.index(1)) 
                 return True
 
-        if '' not in _maplist:
-            print("引き分けです")
+        if '' not in FieldInfo.field_status:
+            self.view.dispGameIsDraw()
     
         return False
     
 
     def main(self):
-        self.draw_map()
+
+        self.view.drawField()
+
+        current_player = self.player
         for i in range(16):
-            if i % 2 == Turn.PLAYER:
-                choiced_piece = self.give_piece_to_player()
-                self.put_piece_by_player(choiced_piece)
+            if i%2 == Turn.PLAYER:
+                current_player = self.player
+
+                # NPCがコマ選択
+                selected_piece = self.npc.selectRandomPiece()
+                self.view.dispReceivedPieceInstruction(selected_piece)
+
+
+                # Playerがスロット選択
+                while(True):
+                    self.view.dispSelectSlotInstruction()
+                    player_input = input()
+                    selected_pos = sorted(player_input)
+            
+                    if selected_pos == '':
+                        idx = self.player.selectRandomSlotIndex()
+                    elif len(selected_pos) != 2:
+                        continue
+                    elif (selected_pos[0] in [str(i) for i in range(1, 1+4)] 
+                        and selected_pos[1].upper() in [chr(i) for i in range(65, 65+4)]):
+                        idx = (int(selected_pos[0]) - 1) * 4 + [chr(i) for i in range(65, 65+4)].index(selected_pos[1].upper())
+                    else:
+                        continue
+                    
+                    if FieldInfo.selectedSlotIsEmpty(idx):
+                        self.player.selectSlot(selected_piece, idx)
+                        break
+                    else:
+                        self.view.dispSelectSlotWarning()
+
+                self.view.dispSelectedSlotInfo(self.player.name, idx)
+
             else:
-                choiced_piece = self.give_piece_to_com()
-                self.put_piece_by_com(choiced_piece)
-                
-            if self.finish(self.maplist):
+                current_player = self.npc
+
+                # Playerがコマ選択
+                self.view.dispAvailablePiecesInfo()
+                selected_piece = ''
+                while(True):
+                    self.view.dispSelectPieceInstruction()
+                    selected_piece_id = input()
+                    if selected_piece_id == '':
+                        selected_piece = self.player.selectRandomPiece()
+                        break
+                    else:
+                        try:
+                            selected_piece_id = int(selected_piece_id) - 1
+                        except ValueError:
+                            continue
+                    if 0 <= selected_piece_id < len(FieldInfo.available_pieces):
+                        selected_piece = self.player.selectPiece(selected_piece_id)
+                        break
+                self.view.dispSelectedPieceInfo(selected_piece)
+
+                # NPCがスロット選択
+                idx = self.npc.selectRandomSlotIndex()
+                self.npc.selectSlot(selected_piece, idx)
+                self.view.dispSelectedSlotInfo(self.npc.name, idx)
+
+            if self.gameIsOver(current_player):
                 break
     
-            self.draw_map()
+            self.view.drawField()
 
 
 if __name__ == "__main__":
     args = sys.argv
     if len(args) >= 2 and args[1].lower() == 'hard':
-        print('hard mode')
         qa = Qarto(Difficulty.HARD)
     else:
-        print('nomal mode')
         qa = Qarto(Difficulty.NORMAL)
 
     qa.main()
