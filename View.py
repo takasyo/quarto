@@ -49,7 +49,7 @@ class View():
             for j in range(4):
                 if not FieldInfo.selectedSlotIsEmpty(i):
                     self.piece_chars_on_slot[i][j] = self.piece_str[j][int(FieldInfo.field_status[i][j])]
-        if type(_pattern_type) == int:
+        if type(_pattern_type) == int and 0 <= _pattern_index <= 9:
             tmp = FieldInfo.field_status[FieldInfo.clear_patterns[_pattern_index][0]][_pattern_type]
             self.quarto_mark[_pattern_index] = self.piece_str[_pattern_type][int(tmp)]
         print(self.field.format(self.piece_chars_on_slot, self.quarto_mark))

@@ -24,7 +24,7 @@ class Qarto(object):
         self.player = Player("Bob")
 
         if _game_mode == Difficulty.HARD:
-            FieldInfo.changeDifficulty
+            FieldInfo.changeDifficulty()
             self.view.dispTitleHard()
         else:
             self.view.dispTitleNormal()

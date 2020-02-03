@@ -13,7 +13,7 @@ class FieldInfo():
     
     @staticmethod
     def changeDifficulty():
-        clear_patterns[len(clear_patterns):len(clear_patterns)] = [
+        FieldInfo.clear_patterns.extend([
                 [0,1,4,5], [1,2,5,6], [2,3,6,7], [4,5,8,9], [5,6,9,10], 
                 [6,7,10,11], [8,9,12,13], [9,10,13,14],[10,11,14,15]
-            ]
+            ])
