@@ -69,14 +69,13 @@ class Qarto(object):
                 selected_piece = self.npc.selectRandomPiece()
                 self.view.dispReceivedPieceInstruction(selected_piece)
 
-
                 # Playerがスロット選択
                 while(True):
                     self.view.dispSelectSlotInstruction()
                     player_input = input()
                     selected_pos = sorted(player_input)
             
-                    if selected_pos == '':
+                    if len(selected_pos) == 0:
                         idx = self.player.selectRandomSlotIndex()
                     elif len(selected_pos) != 2:
                         continue

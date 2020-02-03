@@ -56,7 +56,7 @@ class View():
 
 
     def dispReceivedPieceInstruction(self, _piece):
-        print('{0[0]}{0[1]}\n{0[2]}{0[3]}\nを置いてください'
+        print('\n{0[0]}{0[1]}\n{0[2]}{0[3]}\nを置いてください'
                 .format([self.piece_str[i][int(_piece[i])] for i in range(4)]))
 
 
