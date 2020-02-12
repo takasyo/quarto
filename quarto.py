@@ -2,7 +2,7 @@ import random
 import sys
 import textwrap
 from enum import Enum, IntEnum
-from Player import Player, NPC
+from Player import Player, NPC, QNPC
 from GameInfo import FieldInfo
 from View import View
 
@@ -16,18 +16,21 @@ class Turn(IntEnum):
     PLAYER = 0
     NPC = 1
 
-
+WINNING_COUNT = 0
 class Qarto(object):
     def __init__(self, _game_mode=Difficulty.NORMAL):
         self.view = View()
         self.npc = NPC("Alice")
         self.player = Player("Bob")
 
+        FieldInfo.resetFieldParams()
+
         if _game_mode == Difficulty.HARD:
             FieldInfo.changeDifficulty()
-            self.view.dispTitleHard()
+            # self.view.dispTitleHard()
         else:
-            self.view.dispTitleNormal()
+            # self.view.dispTitleNormal()
+            pass
 
 
     def gameIsOver(self, _current_player):
@@ -47,14 +50,53 @@ class Qarto(object):
             # tmpに1つでも1があるかつ全てのスロットにコマを置いている 
             if 1 in tmp and has_empty_slot is False:
                 self.view.dispGameIsOver(_current_player.name)
-                self.view.drawField(i, tmp.index(1)) 
+                if _current_player.name == 'Eve':
+                    global WINNING_COUNT
+                    WINNING_COUNT = WINNING_COUNT + 1
+                # self.view.drawField(i, tmp.index(1)) 
                 return True
 
-        if '' not in FieldInfo.field_status:
-            self.view.dispGameIsDraw()
+        # if '' not in FieldInfo.field_status:
+            # self.view.dispGameIsDraw()
     
         return False
     
+    def qLearning(self):
+        self.q_npc = QNPC("Eve")
+    
+        # self.view.drawField()
+
+        current_player = self.q_npc
+        for i in range(16):
+            if i%2 == Turn.PLAYER:
+                current_player = self.q_npc
+
+                # NPCがコマ選択
+                selected_piece = self.npc.selectRandomPiece()
+                # self.view.dispReceivedPieceInstruction(selected_piece)
+
+                # Q-NPCがスロット選択
+                (idx, vec) = self.q_npc.selectNextSlot(selected_piece)
+                self.q_npc.updateNextSlotQValue(vec, self.gameIsOver(current_player))
+                # self.q_npc.debugSlotQValues()
+                # self.view.dispSelectedSlotInfo(self.q_npc.name, idx)
+
+            else:
+                current_player = self.npc
+
+                # Q-NPCがコマ選択
+                selected_piece = self.q_npc.selectRandomPiece()
+                # self.view.dispReceivedPieceInstruction(selected_piece)
+
+                # NPCがスロット選択
+                idx = self.npc.selectRandomSlotIndex()
+                self.npc.selectSlot(selected_piece, idx)
+                # self.view.dispSelectedSlotInfo(self.npc.name, idx)
+
+            if self.gameIsOver(current_player):
+                break
+    
+            # self.view.drawField()
 
     def main(self):
 
@@ -128,9 +170,13 @@ class Qarto(object):
 
 if __name__ == "__main__":
     args = sys.argv
-    if len(args) >= 2 and args[1].lower() == 'hard':
-        qa = Qarto(Difficulty.HARD)
-    else:
-        qa = Qarto(Difficulty.NORMAL)
+    for i in range(0,1000):
+        if len(args) >= 2 and args[1].lower() == 'hard':
+            qa = Qarto(Difficulty.HARD)
+        else:
+            qa = Qarto(Difficulty.NORMAL)
 
-    qa.main()
+        qa.qLearning()
+    print(WINNING_COUNT/1000)
+    # qa.main()
+
