@@ -1,7 +1,8 @@
 import random
 from abc import ABCMeta
 from abc import abstractmethod
-from GameInfo import FieldInfo
+import Levenshtein
+from GameInfo import FieldInfo, QInfo
 
 SLOT_ALPHA = 0.1
 SLOT_GAMMA = 0.9
@@ -46,8 +47,6 @@ class NPC(AbsPlayer):
 
 
 class QNPC(AbsPlayer):
-    slot_q_values = {}
-
     def encodePiece(self, _piese):
         return (chr(ord('a')+int(_piese, 2)))
 
@@ -61,54 +60,81 @@ class QNPC(AbsPlayer):
                 field_v = field_v + (chr(ord('a')-1))
         return field_v
 
-    def selectNextSlot(self, _given_piece):
+    def selectNextAction(self, _given_piece):
         if random.random() < EPSILON:
-            tmp_field_vec = self.encodeField()
-            selected_idx = self.selectRandomSlotIndex()
-            tmp_field_vec = tmp_field_vec[:selected_idx] + self.encodePiece(_given_piece) + tmp_field_vec[selected_idx+1:]
+            tmp_field_vec  = self.encodeField()
+            selected_slot_idx   = self.selectRandomSlotIndex()
+            # 10000はダミー
+            selected_piece = self.selectRandomPiece() if len(FieldInfo.available_pieces) != 0 else '10000'
+            tmp_vec = tmp_field_vec[:selected_slot_idx] + self.encodePiece(_given_piece)\
+                + tmp_field_vec[selected_slot_idx+1:] + self.encodePiece(selected_piece)
 
-            if tmp_field_vec not in self.slot_q_values:
-                self.slot_q_values[tmp_field_vec] = random.random()
+            if tmp_vec not in QInfo.q_values:
+                QInfo.q_values[tmp_vec] = random.random()
             
-            FieldInfo.field_status[selected_idx] = _given_piece
+            FieldInfo.field_status[selected_slot_idx] = _given_piece
 
-            return (selected_idx, tmp_field_vec)
+            return (tmp_vec, selected_piece)
         else:
             field_vec = self.encodeField()
 
             # 空いているインデックス一覧を取得，状態ベクトルに変換，最も高いQ値が得られる状態を選ぶ
+            # 状態ベクトル:[0]-[15]->FieldInfo.field_status, [16]->selected_piece
             app_slot_info = ()
             max_v = 0.0
-            for available_slot_idx in [i for i, e in enumerate(field_vec) if e == '`']:
-                tmp_field_vec = field_vec[:available_slot_idx] + self.encodePiece(_given_piece) + field_vec[available_slot_idx+1:]
+            for selected_slot_idx in [i for i, e in enumerate(field_vec) if e == '`']:
+                tmp_field_vec = field_vec[:selected_slot_idx] + self.encodePiece(_given_piece)\
+                     + field_vec[selected_slot_idx+1:]
 
-                if tmp_field_vec not in self.slot_q_values:
-                    self.slot_q_values[tmp_field_vec] = random.random()
-                
-                if max_v < self.slot_q_values[tmp_field_vec]:
-                    app_slot_info = (available_slot_idx, tmp_field_vec)
-                    max_v = self.slot_q_values[tmp_field_vec]
+                if len(FieldInfo.available_pieces) == 0:
+                    selected_piece = '10000'
+                    tmp_vec = tmp_field_vec + self.encodePiece(selected_piece)
+
+                    if tmp_vec not in QInfo.q_values:
+                        QInfo.q_values[tmp_vec] = random.random()
+
+                    if max_v < QInfo.q_values[tmp_vec]:
+                        app_slot_info = (selected_slot_idx, tmp_vec, selected_piece)
+                        max_v = QInfo.q_values[tmp_vec]
+
+                else:
+                    for selected_piece in FieldInfo.available_pieces:
+                        tmp_vec = tmp_field_vec + self.encodePiece(selected_piece)
+
+                        if tmp_vec not in QInfo.q_values:
+                            QInfo.q_values[tmp_vec] = random.random()
+                        
+                        if max_v < QInfo.q_values[tmp_vec]:
+                            app_slot_info = (selected_slot_idx, tmp_vec, selected_piece)
+                            max_v = QInfo.q_values[tmp_vec]
 
             FieldInfo.field_status[app_slot_info[0]] = _given_piece
 
-            return app_slot_info
+            if len(FieldInfo.available_pieces) != 0:
+                FieldInfo.available_pieces.remove(app_slot_info[2])
+
+            return (app_slot_info[1], app_slot_info[2])
     
-    def debugSlotQValues(self):
-        for item in self.slot_q_values.items():
-            print(item)
 
-
-    def updateNextSlotQValue(self, _field_vec, _game_is_over):
-        old_qv = self.slot_q_values[_field_vec]
-        if _game_is_over:
+    def updateNextQValue(self, _field_vec, _result):
+        old_qv = QInfo.q_values[_field_vec]
+        if _result == 2:
             # 報酬は1000
-            self.slot_q_values[_field_vec] = old_qv + SLOT_ALPHA*(1000 - old_qv)
+            QInfo.q_values[_field_vec] = old_qv + SLOT_ALPHA*(1000 - old_qv)
         else:
-            # 相手の選択するコマが不明であるため今回のスロット中の最高期待値を学習
-            self.slot_q_values[_field_vec] = old_qv + SLOT_ALPHA*(SLOT_GAMMA*old_qv - old_qv)
+            # 想定されるパターン全てを列挙
+            next_states = [(vec, v) for vec, v in QInfo.q_values.items()
+                            if Levenshtein.distance(_field_vec[0:16], vec[0:16]) == 2 and
+                                _field_vec.count('`')-vec.count('`') >= 2]
+            max_qv = max(next_states, key=lambda v: v[1])[1] if len(next_states) != 0 else random.random()
+            if len(next_states) != 0:
+                print(_field_vec+':', end='')
+                print(max(next_states, key=lambda v: v[1]))
+
+            QInfo.q_values[_field_vec] = old_qv + SLOT_ALPHA*(SLOT_GAMMA*max_qv - old_qv)
 
 
     def selectSlot(self, _given_piece, _idx):
         FieldInfo.field_status[_idx] = _given_piece
-    def selectPiece(self, _idx):
+    def selectPiece(self, _selected_piece):
         pass

@@ -1,9 +1,10 @@
 import random
 import sys
 import textwrap
+import pickle
 from enum import Enum, IntEnum
 from Player import Player, NPC, QNPC
-from GameInfo import FieldInfo
+from GameInfo import FieldInfo, QInfo
 from View import View
 
 
@@ -54,49 +55,34 @@ class Qarto(object):
                     global WINNING_COUNT
                     WINNING_COUNT = WINNING_COUNT + 1
                 # self.view.drawField(i, tmp.index(1)) 
-                return True
+                return 2
 
-        # if '' not in FieldInfo.field_status:
-            # self.view.dispGameIsDraw()
+        if '' not in FieldInfo.field_status:
+            self.view.dispGameIsDraw()
+            return 1
     
-        return False
+        return 0
     
     def qLearning(self):
-        self.q_npc = QNPC("Eve")
+        self.q_npc_0 = QNPC("Adam")
+        self.q_npc_1 = QNPC("Eve")
     
-        # self.view.drawField()
-
-        current_player = self.q_npc
+        given_piece = self.q_npc_1.selectRandomPiece()
         for i in range(16):
             if i%2 == Turn.PLAYER:
-                current_player = self.q_npc
-
-                # NPCがコマ選択
-                selected_piece = self.npc.selectRandomPiece()
-                # self.view.dispReceivedPieceInstruction(selected_piece)
-
-                # Q-NPCがスロット選択
-                (idx, vec) = self.q_npc.selectNextSlot(selected_piece)
-                self.q_npc.updateNextSlotQValue(vec, self.gameIsOver(current_player))
-                # self.q_npc.debugSlotQValues()
-                # self.view.dispSelectedSlotInfo(self.q_npc.name, idx)
+                (vec, selected_piece) = self.q_npc_0.selectNextAction(given_piece)
+                result = self.gameIsOver(self.q_npc_0)
+                if result != 0:
+                    break
+                self.q_npc_0.updateNextQValue(vec, result)
 
             else:
-                current_player = self.npc
+                (vec, given_piece) = self.q_npc_1.selectNextAction(selected_piece)
+                result = self.gameIsOver(self.q_npc_1)
+                if result != 0:
+                    break
+                self.q_npc_1.updateNextQValue(vec, result)
 
-                # Q-NPCがコマ選択
-                selected_piece = self.q_npc.selectRandomPiece()
-                # self.view.dispReceivedPieceInstruction(selected_piece)
-
-                # NPCがスロット選択
-                idx = self.npc.selectRandomSlotIndex()
-                self.npc.selectSlot(selected_piece, idx)
-                # self.view.dispSelectedSlotInfo(self.npc.name, idx)
-
-            if self.gameIsOver(current_player):
-                break
-    
-            # self.view.drawField()
 
     def main(self):
 
@@ -176,7 +162,12 @@ if __name__ == "__main__":
         else:
             qa = Qarto(Difficulty.NORMAL)
 
+        print(i,end='')
         qa.qLearning()
+
+    with open('QNPC_Dict.pickle', 'wb') as f:
+        pickle.dump(QInfo.q_values, f)
+
     print(WINNING_COUNT/1000)
     # qa.main()
 
