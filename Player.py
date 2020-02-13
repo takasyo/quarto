@@ -2,10 +2,11 @@ import random
 from abc import ABCMeta
 from abc import abstractmethod
 import Levenshtein
+import pickle
 from GameInfo import FieldInfo, QInfo
 
-SLOT_ALPHA = 0.1
-SLOT_GAMMA = 0.9
+ALPHA = 0.1
+GAMMA = 0.9
 EPSILON = 0.3
 class AbsPlayer(metaclass = ABCMeta):
     def __init__(self, _name):
@@ -47,6 +48,11 @@ class NPC(AbsPlayer):
 
 
 class QNPC(AbsPlayer):
+    def __init__(self, _name):
+        super().__init__(_name)
+        with open('QNPC_Dict.pickle', 'rb') as f:
+            QInfo.q_values = pickle.load(f)
+
     def encodePiece(self, _piese):
         return (chr(ord('a')+int(_piese, 2)))
 
@@ -120,7 +126,7 @@ class QNPC(AbsPlayer):
         old_qv = QInfo.q_values[_field_vec]
         if _result == 2:
             # 報酬は1000
-            QInfo.q_values[_field_vec] = old_qv + SLOT_ALPHA*(1000 - old_qv)
+            QInfo.q_values[_field_vec] = old_qv + ALPHA*(1000 - old_qv)
         else:
             # 想定されるパターン全てを列挙
             next_states = [(vec, v) for vec, v in QInfo.q_values.items()
@@ -131,7 +137,7 @@ class QNPC(AbsPlayer):
                 print(_field_vec+':', end='')
                 print(max(next_states, key=lambda v: v[1]))
 
-            QInfo.q_values[_field_vec] = old_qv + SLOT_ALPHA*(SLOT_GAMMA*max_qv - old_qv)
+            QInfo.q_values[_field_vec] = old_qv + ALPHA*(GAMMA*max_qv - old_qv)
 
 
     def selectSlot(self, _given_piece, _idx):
