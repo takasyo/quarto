@@ -101,5 +101,5 @@ class View():
     
 
     def dispGameIsOver(self, _player_name):
-        # print('QUARTOです')   
+        print('QUARTOです')   
         print(_player_name + 'の勝利!')

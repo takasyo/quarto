@@ -21,16 +21,16 @@ WINNING_COUNT = 0
 class Qarto(object):
     def __init__(self, _game_mode=Difficulty.NORMAL):
         self.view = View()
-        self.npc = NPC("Alice")
+        self.q_npc = QNPC("Alice")
         self.player = Player("Bob")
 
         FieldInfo.resetFieldParams()
 
         if _game_mode == Difficulty.HARD:
             FieldInfo.changeDifficulty()
-            # self.view.dispTitleHard()
+            self.view.dispTitleHard()
         else:
-            # self.view.dispTitleNormal()
+            self.view.dispTitleNormal()
             pass
 
 
@@ -54,7 +54,7 @@ class Qarto(object):
                 if _current_player.name == 'Eve':
                     global WINNING_COUNT
                     WINNING_COUNT = WINNING_COUNT + 1
-                # self.view.drawField(i, tmp.index(1)) 
+                self.view.drawField(i, tmp.index(1)) 
                 return 2
 
         if '' not in FieldInfo.field_status:
@@ -70,14 +70,14 @@ class Qarto(object):
         given_piece = self.q_npc_1.selectRandomPiece()
         for i in range(16):
             if i%2 == Turn.PLAYER:
-                (vec, selected_piece) = self.q_npc_0.selectNextAction(given_piece)
+                (idx, vec, selected_piece) = self.q_npc_0.selectNextAction(given_piece)
                 result = self.gameIsOver(self.q_npc_0)
                 if result != 0:
                     break
                 self.q_npc_0.updateNextQValue(vec, result)
 
             else:
-                (vec, given_piece) = self.q_npc_1.selectNextAction(selected_piece)
+                (idx, vec, given_piece) = self.q_npc_1.selectNextAction(selected_piece)
                 result = self.gameIsOver(self.q_npc_1)
                 if result != 0:
                     break
@@ -88,15 +88,10 @@ class Qarto(object):
 
         self.view.drawField()
 
-        current_player = self.player
+        given_piece = self.q_npc.selectRandomPiece()
+        self.view.dispReceivedPieceInstruction(given_piece)
         for i in range(16):
             if i%2 == Turn.PLAYER:
-                current_player = self.player
-
-                # NPCがコマ選択
-                selected_piece = self.npc.selectRandomPiece()
-                self.view.dispReceivedPieceInstruction(selected_piece)
-
                 # Playerがスロット選択
                 while(True):
                     self.view.dispSelectSlotInstruction()
@@ -114,15 +109,17 @@ class Qarto(object):
                         continue
                     
                     if FieldInfo.selectedSlotIsEmpty(idx):
-                        self.player.selectSlot(selected_piece, idx)
+                        self.player.selectSlot(given_piece, idx)
                         break
                     else:
                         self.view.dispSelectSlotWarning()
 
                 self.view.dispSelectedSlotInfo(self.player.name, idx)
+                self.view.drawField()
 
-            else:
-                current_player = self.npc
+                result = self.gameIsOver(self.player)
+                if result != 0:
+                    break
 
                 # Playerがコマ選択
                 self.view.dispAvailablePiecesInfo()
@@ -143,31 +140,27 @@ class Qarto(object):
                         break
                 self.view.dispSelectedPieceInfo(selected_piece)
 
+            else:
                 # NPCがスロット選択
-                idx = self.npc.selectRandomSlotIndex()
-                self.npc.selectSlot(selected_piece, idx)
-                self.view.dispSelectedSlotInfo(self.npc.name, idx)
+                (idx, vec, given_piece) = self.q_npc.selectNextAction(selected_piece)
+                result = self.gameIsOver(self.q_npc)
 
-            if self.gameIsOver(current_player):
-                break
-    
+                self.view.dispSelectedSlotInfo(self.q_npc.name, idx)
+
+                if result != 0:
+                    break
+
+                self.view.dispReceivedPieceInstruction(given_piece)
+
             self.view.drawField()
 
 
 if __name__ == "__main__":
     args = sys.argv
-    for i in range(0,1000):
-        if len(args) >= 2 and args[1].lower() == 'hard':
-            qa = Qarto(Difficulty.HARD)
-        else:
-            qa = Qarto(Difficulty.NORMAL)
+    if len(args) >= 2 and args[1].lower() == 'hard':
+        qa = Qarto(Difficulty.HARD)
+    else:
+        qa = Qarto(Difficulty.NORMAL)
 
-        print(i,end='')
-        qa.qLearning()
-
-    with open('QNPC_Dict.pickle', 'wb') as f:
-        pickle.dump(QInfo.q_values, f)
-
-    print(WINNING_COUNT/1000)
-    # qa.main()
+    qa.main()
 

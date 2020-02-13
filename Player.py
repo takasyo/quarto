@@ -80,7 +80,7 @@ class QNPC(AbsPlayer):
             
             FieldInfo.field_status[selected_slot_idx] = _given_piece
 
-            return (tmp_vec, selected_piece)
+            return (selected_slot_idx, tmp_vec, selected_piece)
         else:
             field_vec = self.encodeField()
 
@@ -119,7 +119,7 @@ class QNPC(AbsPlayer):
             if len(FieldInfo.available_pieces) != 0:
                 FieldInfo.available_pieces.remove(app_slot_info[2])
 
-            return (app_slot_info[1], app_slot_info[2])
+            return app_slot_info
     
 
     def updateNextQValue(self, _field_vec, _result):
