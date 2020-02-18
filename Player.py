@@ -5,8 +5,8 @@ import Levenshtein
 import pickle
 from GameInfo import FieldInfo, QInfo
 
-ALPHA = 0.1
-GAMMA = 0.9
+ALPHA = 0.3
+GAMMA = 0.2
 EPSILON = 0.3
 class AbsPlayer(metaclass = ABCMeta):
     def __init__(self, _name):
@@ -125,8 +125,8 @@ class QNPC(AbsPlayer):
     def updateNextQValue(self, _field_vec, _result):
         old_qv = QInfo.q_values[_field_vec]
         if _result == 2:
-            # 報酬は1000
-            QInfo.q_values[_field_vec] = old_qv + ALPHA*(1000 - old_qv)
+            # 報酬は1000, 手数が小さいほど評価
+            QInfo.q_values[_field_vec] = old_qv + ALPHA*(1000/(16-len(FieldInfo.available_pieces)) - old_qv)
         else:
             # 想定されるパターン全てを列挙
             next_states = [(vec, v) for vec, v in QInfo.q_values.items()

@@ -28,9 +28,9 @@ class Qarto(object):
 
         if _game_mode == Difficulty.HARD:
             FieldInfo.changeDifficulty()
-            self.view.dispTitleHard()
+            # self.view.dispTitleHard()
         else:
-            self.view.dispTitleNormal()
+            # self.view.dispTitleNormal()
             pass
 
 
@@ -151,16 +151,24 @@ class Qarto(object):
                     break
 
                 self.view.dispReceivedPieceInstruction(given_piece)
+                self.view.drawField()
 
-            self.view.drawField()
 
 
 if __name__ == "__main__":
     args = sys.argv
-    if len(args) >= 2 and args[1].lower() == 'hard':
-        qa = Qarto(Difficulty.HARD)
-    else:
-        qa = Qarto(Difficulty.NORMAL)
+    # for i in range(1, 10001):
+    #     if len(args) >= 2 and args[1].lower() == 'hard':
+    #         qa = Qarto(Difficulty.HARD)
+    #     else:
+    #         qa = Qarto(Difficulty.NORMAL)
 
+    #     print(str(i) + ':' + str(len(QInfo.q_values)))
+    #     qa.qLearning()
+    
+    #     if i%1000 == 01
+    #         with open('QNPC_Dict.pickle', 'wb') as f:
+    #             pickle.dump(QInfo.q_values, f)
+
+    qa = Qarto(Difficulty.NORMAL)
     qa.main()
-
