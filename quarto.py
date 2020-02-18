@@ -1,6 +1,7 @@
 import random
 import sys
 import textwrap
+import argparse
 from enum import Enum, IntEnum
 from Player import Player, NPC
 from GameInfo import FieldInfo
@@ -20,8 +21,8 @@ class Turn(IntEnum):
 class Qarto(object):
     def __init__(self, _game_mode=Difficulty.NORMAL):
         self.view = View()
-        self.npc = NPC("Alice")
-        self.player = Player("Bob")
+        self.npc = NPC("NPC")
+        self.player = Player("Player")
 
         if _game_mode == Difficulty.HARD:
             FieldInfo.changeDifficulty()
@@ -57,16 +58,25 @@ class Qarto(object):
     
 
     def main(self):
-
         self.view.drawField()
 
-        current_player = self.player
         for i in range(16):
             if i%2 == Turn.PLAYER:
                 current_player = self.player
 
                 # NPCがコマ選択
-                selected_piece = self.npc.selectRandomPiece()
+                self.available_pieces = FieldInfo.available_pieces[:]
+                while(True):
+                    selected_piece = random.choice(self.available_pieces)
+                    self.available_pieces.remove(selected_piece)
+                    idx = self.npc.selectQuartoSlotIndex(selected_piece)
+                    if idx == -1: # selected_pieceがQUARTOにならない
+                        FieldInfo.available_pieces.remove(selected_piece)
+                        break
+                    if len(self.available_pieces) == 0:
+                        selected_piece = self.npc.selectRandomPiece()
+                        break
+
                 self.view.dispReceivedPieceInstruction(selected_piece)
 
                 # Playerがスロット選択
@@ -98,7 +108,6 @@ class Qarto(object):
 
                 # Playerがコマ選択
                 self.view.dispAvailablePiecesInfo()
-                selected_piece = ''
                 while(True):
                     self.view.dispSelectPieceInstruction()
                     selected_piece_id = input()
@@ -110,13 +119,16 @@ class Qarto(object):
                             selected_piece_id = int(selected_piece_id) - 1
                         except ValueError:
                             continue
+                    
                     if 0 <= selected_piece_id < len(FieldInfo.available_pieces):
                         selected_piece = self.player.selectPiece(selected_piece_id)
                         break
                 self.view.dispSelectedPieceInfo(selected_piece)
 
                 # NPCがスロット選択
-                idx = self.npc.selectRandomSlotIndex()
+                idx = self.npc.selectQuartoSlotIndex(selected_piece)
+                if idx == -1: # どこに置いてもQUARTOになってしまう
+                    idx = self.npc.selectRandomSlotIndex()
                 self.npc.selectSlot(selected_piece, idx)
                 self.view.dispSelectedSlotInfo(self.npc.name, idx)
 
@@ -127,8 +139,11 @@ class Qarto(object):
 
 
 if __name__ == "__main__":
-    args = sys.argv
-    if len(args) >= 2 and args[1].lower() == 'hard':
+    parser = argparse.ArgumentParser('QUARTOで遊ぶことができます')
+    parser.add_argument('--hard', action = 'store_true', help = 'hard modeで遊ぶことができます')
+    args = parser.parse_args()
+
+    if args.hard:
         qa = Qarto(Difficulty.HARD)
     else:
         qa = Qarto(Difficulty.NORMAL)
