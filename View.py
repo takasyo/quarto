@@ -19,8 +19,12 @@ class View():
         ＿＿丄＿＿丄＿＿丄＿＿丄＿＿」
     """)
     piece_str = [['黒', '白'], ['高', '低'], ['円', '角'], ['穴', '平']]
-    quarto_mark = ['　'] * len(FieldInfo.clear_patterns)
-    piece_chars_on_slot = [['　'] * 4 for _ in range(16)]
+    quarto_mark = []
+    piece_chars_on_slot = []
+
+    def __init__(self):
+        self.quarto_mark = ['　'] * len(FieldInfo.clear_patterns)
+        self.piece_chars_on_slot = [['　'] * 4 for _ in range(16)]
 
 
     def dispTitleNormal(self):
@@ -101,5 +105,5 @@ class View():
     
 
     def dispGameIsOver(self, _player_name):
-        print('QUARTOです')   
+        # print('QUARTOです')   
         print(_player_name + 'の勝利!')
