@@ -83,11 +83,11 @@ class Qarto(object):
 
     def main(self):
         given_piece = self.q_npc.selectRandomPiece()
-        self.view.dispReceivedPieceInstruction(given_piece)
         for i in range(16):
             if i%2 == Turn.PLAYER:
                 # Playerがスロット選択
                 self.view.drawField()
+                self.view.dispReceivedPieceInstruction(given_piece)
                 while(True):
                     self.view.dispSelectSlotInstruction()
                     player_input = input()
@@ -156,8 +156,6 @@ class Qarto(object):
                 elif game_over_type == 1:
                     self.view.dispGameIsDraw()
                     break
-
-                self.view.dispReceivedPieceInstruction(given_piece)
 
 
 if __name__ == "__main__":
