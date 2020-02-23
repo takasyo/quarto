@@ -25,6 +25,38 @@ class AbsPlayer(metaclass = ABCMeta):
                 break
         return selected_idx
 
+
+class Player(AbsPlayer):
+    def selectSlot(self, _given_piece, _idx):
+        FieldInfo.field_status[_idx] = _given_piece
+
+    def selectPiece(self, _idx):
+        selected_piece = FieldInfo.available_pieces[_idx]
+        FieldInfo.available_pieces.remove(selected_piece)
+        return selected_piece
+
+
+class NPC(AbsPlayer):
+    def selectSlot(self, _given_piece):
+        idx = self.selectQuartoSlotIndex(_given_piece)
+        if idx == -1: # どこに置いてもQUARTOになってしまう
+            idx = self.selectRandomSlotIndex()
+        FieldInfo.field_status[idx] = _given_piece
+        return idx
+
+    def selectPiece(self, _available_pieces):
+        while(True):
+            selected_piece = random.choice(_available_pieces)
+            _available_pieces.remove(selected_piece)
+            idx = self.selectQuartoSlotIndex(selected_piece)
+            if idx == -1: # selected_pieceがQUARTOにならない
+                FieldInfo.available_pieces.remove(selected_piece)
+                break
+            if len(_available_pieces) == 0:
+                selected_piece = self.selectRandomPiece()
+                break
+        return selected_piece
+
     def selectQuartoSlotIndex(self, _given_piece):
         for i in range(len(FieldInfo.clear_patterns)): # 0~9 or 0~18
             tmp = [1] * 4
@@ -50,19 +82,3 @@ class AbsPlayer(metaclass = ABCMeta):
                 return quarto_slot_index
         
         return -1
-
-
-class Player(AbsPlayer):
-    def selectSlot(self, _given_piece, _idx):
-        FieldInfo.field_status[_idx] = _given_piece
-    def selectPiece(self, _idx):
-        selected_piece = FieldInfo.available_pieces[_idx]
-        FieldInfo.available_pieces.remove(selected_piece)
-        return selected_piece
-
-
-class NPC(AbsPlayer):
-    def selectSlot(self, _given_piece, _idx):
-        FieldInfo.field_status[_idx] = _given_piece
-    def selectPiece(self):
-        pass

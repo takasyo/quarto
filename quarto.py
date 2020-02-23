@@ -65,18 +65,7 @@ class Qarto(object):
                 current_player = self.player
 
                 # NPCがコマ選択
-                self.available_pieces = FieldInfo.available_pieces[:]
-                while(True):
-                    selected_piece = random.choice(self.available_pieces)
-                    self.available_pieces.remove(selected_piece)
-                    idx = self.npc.selectQuartoSlotIndex(selected_piece)
-                    if idx == -1: # selected_pieceがQUARTOにならない
-                        FieldInfo.available_pieces.remove(selected_piece)
-                        break
-                    if len(self.available_pieces) == 0:
-                        selected_piece = self.npc.selectRandomPiece()
-                        break
-
+                selected_piece = self.npc.selectPiece(FieldInfo.available_pieces[:])
                 self.view.dispReceivedPieceInstruction(selected_piece)
 
                 # Playerがスロット選択
@@ -100,7 +89,6 @@ class Qarto(object):
                         break
                     else:
                         self.view.dispSelectSlotWarning()
-
                 self.view.dispSelectedSlotInfo(self.player.name, idx)
 
             else:
@@ -126,10 +114,7 @@ class Qarto(object):
                 self.view.dispSelectedPieceInfo(selected_piece)
 
                 # NPCがスロット選択
-                idx = self.npc.selectQuartoSlotIndex(selected_piece)
-                if idx == -1: # どこに置いてもQUARTOになってしまう
-                    idx = self.npc.selectRandomSlotIndex()
-                self.npc.selectSlot(selected_piece, idx)
+                idx = self.npc.selectSlot(selected_piece)
                 self.view.dispSelectedSlotInfo(self.npc.name, idx)
 
             if self.gameIsOver(current_player):
