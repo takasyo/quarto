@@ -23,5 +23,5 @@ python quarto.py
 HARDモードで遊びたい場合
 
 ```bash
-python quarto.py hard
+python quarto.py --hard
 ```
