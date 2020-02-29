@@ -189,7 +189,7 @@ class Qarto(object):
 
       
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser('QUARTOで遊ぶことができます')
+    parser = argparse.ArgumentParser(description = 'QUARTOで遊ぶことができます')
     parser.add_argument('--hard', action = 'store_true', help = 'hard modeで遊ぶことができます')
     parser.add_argument('-q', '--qlearn', action = 'store_true', help = 'Q学習した相手と対戦できます')
     args = parser.parse_args()
