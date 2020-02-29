@@ -23,6 +23,7 @@ class Qarto(object):
     def __init__(self, _game_mode=Difficulty.NORMAL):
         self.view = View()
         self.npc = NPC("NPC")
+        self.q_npc = QNPC("QNPC")
         self.player = Player("Player")
 
         FieldInfo.resetFieldParams()
@@ -228,7 +229,7 @@ class Qarto(object):
 
       
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser('QUARTOで遊ぶことができます')
+    parser = argparse.ArgumentParser(description = 'QUARTOで遊ぶことができます')
     parser.add_argument('--hard', action = 'store_true', help = 'hard modeで遊ぶことができます')
     parser.add_argument('-q', '--qlearn', action = 'store_true', help = 'Q学習した相手と対戦できます')
     args = parser.parse_args()
