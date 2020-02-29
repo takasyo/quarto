@@ -164,7 +164,6 @@ class QNPC(NPC):
                         quarto_slot_idx = self.selectQuartoSlotIndex(random_selected_piece)
                         if quarto_slot_idx == -1 or (quarto_slot_idx != -1 and len(not_next_quarto_pieces) == 0):
                             not_next_quarto_pieces.append(random_selected_piece)
-                        print(not_next_quarto_pieces)
 
                     for selected_piece in not_next_quarto_pieces:
                         tmp_vec = tmp_field_vec + self.encodePiece(selected_piece)
