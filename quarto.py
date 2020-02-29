@@ -3,6 +3,7 @@ import sys
 import textwrap
 import argparse
 import pickle
+import copy
 from enum import Enum, IntEnum
 from Player import Player, NPC, QNPC
 from GameInfo import FieldInfo, QInfo
@@ -184,7 +185,7 @@ class Qarto(object):
                         break
 
                     # NPCがコマ選択
-                    given_piece = self.npc.selectPiece(FieldInfo.available_pieces[:])
+                    given_piece = self.npc.selectPiece(copy.deepcopy(FieldInfo.available_pieces))
 
       
 if __name__ == "__main__":

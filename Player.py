@@ -67,7 +67,7 @@ class NPC(AbsPlayer):
         for i in range(len(FieldInfo.clear_patterns)): # 0~9 or 0~18
             tmp = [1] * 4
             empty_count = 0
-            self.field_status = FieldInfo.field_status[:] # copy
+            self.field_status = copy.deepcopy(FieldInfo.field_status)
             for search_index in FieldInfo.clear_patterns[i]: #ex)FieldInfo.clear_patterns[i]=[0, 4, 8, 12]
                 if FieldInfo.selectedSlotIsEmpty(search_index):
                     if empty_count == 0: # empty slotが1つ目
