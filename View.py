@@ -48,14 +48,18 @@ class View():
         print("  `-...(_.'   `-..-'   -'   '' (/  \)   (        `-...-'  ")
 
 
-    def drawField(self, _pattern_index=None, _pattern_type=None):
+    def drawField(self, _clear_pattern_info=None):#_pattern_index=None, _pattern_type=None):
+        if _clear_pattern_info != None:
+            pattern_index = _clear_pattern_info[0]
+            pattern_type  = _clear_pattern_info[1].index(1)
+
         for i in range(len(FieldInfo.field_status)):
             for j in range(4):
                 if not FieldInfo.selectedSlotIsEmpty(i):
                     self.piece_chars_on_slot[i][j] = self.piece_str[j][int(FieldInfo.field_status[i][j])]
-        if type(_pattern_type) == int and 0 <= _pattern_index <= 9:
-            tmp = FieldInfo.field_status[FieldInfo.clear_patterns[_pattern_index][0]][_pattern_type]
-            self.quarto_mark[_pattern_index] = self.piece_str[_pattern_type][int(tmp)]
+        if _clear_pattern_info != None and type(pattern_type) == int and 0 <= pattern_index <= 9:
+            tmp = FieldInfo.field_status[FieldInfo.clear_patterns[pattern_index][0]][pattern_type]
+            self.quarto_mark[pattern_index] = self.piece_str[pattern_type][int(tmp)]
         print(self.field.format(self.piece_chars_on_slot, self.quarto_mark))
 
 

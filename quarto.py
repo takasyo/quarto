@@ -72,7 +72,7 @@ class Qarto(object):
                 game_over_type = game_over_info[0]
                 if game_over_type == 2:
                     self.view.dispGameIsOver(self.q_npc_0.name)
-                    self.view.drawField(game_over_info[1], game_over_info[2].index(1)) 
+                    self.view.drawField(game_over_info[1:3])
                     break
                 self.q_npc_0.updateNextQValue(vec, game_over_type)
 
@@ -82,7 +82,7 @@ class Qarto(object):
                 game_over_type = game_over_info[0]
                 if game_over_type == 2:
                     self.view.dispGameIsOver(self.q_npc_1.name)
-                    self.view.drawField(game_over_info[1], game_over_info[2].index(1)) 
+                    self.view.drawField(game_over_info[1:3])
                     break
                 self.q_npc_1.updateNextQValue(vec, game_over_type)
 
@@ -127,7 +127,7 @@ class Qarto(object):
                 game_over_type = game_over_info[0]
                 if game_over_type == 2:
                     self.view.dispGameIsOver(self.player.name)
-                    self.view.drawField(game_over_info[1], game_over_info[2].index(1)) 
+                    self.view.drawField(game_over_info[1:3])
                     break
                 elif game_over_type == 1:
                     self.view.dispGameIsDraw()
@@ -162,7 +162,7 @@ class Qarto(object):
                     game_over_type = game_over_info[0]
                     if game_over_type == 2:
                         self.view.dispGameIsOver(self.npc.name)
-                        self.view.drawField(game_over_info[1], game_over_info[2].index(1)) 
+                        self.view.drawField(game_over_info[1:3])
                         break
                     elif game_over_type == 1:
                         self.view.dispGameIsDraw()
@@ -177,7 +177,7 @@ class Qarto(object):
                     game_over_type = game_over_info[0]
                     if game_over_type == 2:
                         self.view.dispGameIsOver(self.npc.name)
-                        self.view.drawField(game_over_info[1], game_over_info[2].index(1)) 
+                        self.view.drawField(game_over_info[1:3])
                         break
                     elif game_over_type == 1:
                         self.view.dispGameIsDraw()
