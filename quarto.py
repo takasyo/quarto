@@ -63,14 +63,16 @@ class Qarto(object):
     def qLearning(self):
         self.q_npc_0 = QNPC("0O0")
         self.q_npc_1 = QNPC("1l1")
-    
+
         given_piece = self.q_npc_1.selectRandomPiece()
         for i in range(16):
             if i%2 == Turn.PLAYER:
                 (idx, vec, selected_piece) = self.q_npc_0.selectNextAction(given_piece)
                 game_over_info = self.gameIsOver(self.q_npc_0)
                 game_over_type = game_over_info[0]
-                if game_over_type != 0:
+                if game_over_type == 2:
+                    self.view.dispGameIsOver(self.q_npc_0.name)
+                    self.view.drawField(game_over_info[1], game_over_info[2].index(1)) 
                     break
                 self.q_npc_0.updateNextQValue(vec, game_over_type)
 
@@ -78,9 +80,12 @@ class Qarto(object):
                 (idx, vec, given_piece) = self.q_npc_1.selectNextAction(selected_piece)
                 game_over_info = self.gameIsOver(self.q_npc_1)
                 game_over_type = game_over_info[0]
-                if game_over_type != 0:
+                if game_over_type == 2:
+                    self.view.dispGameIsOver(self.q_npc_1.name)
+                    self.view.drawField(game_over_info[1], game_over_info[2].index(1)) 
                     break
                 self.q_npc_1.updateNextQValue(vec, game_over_type)
+
 
     def main(self, _npc_type=NPCType.QNPC):
         if _npc_type == NPCType.QNPC:
@@ -192,7 +197,7 @@ if __name__ == "__main__":
         qa = Qarto(Difficulty.HARD)
     else:
         qa = Qarto(Difficulty.NORMAL)
-    
+
     if args.qlearn:
         qa.main(NPCType.QNPC)
     else:

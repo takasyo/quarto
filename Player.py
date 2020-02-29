@@ -1,4 +1,5 @@
 import random
+import copy
 from abc import ABCMeta
 from abc import abstractmethod
 import Levenshtein
@@ -7,7 +8,7 @@ from GameInfo import FieldInfo, QInfo
 
 ALPHA = 0.3
 GAMMA = 0.2
-EPSILON = 0.3
+EPSILON = 0.0
 class AbsPlayer(metaclass = ABCMeta):
     def __init__(self, _name):
         self.name = _name
@@ -89,7 +90,7 @@ class NPC(AbsPlayer):
         return -1
 
 
-class QNPC(AbsPlayer):
+class QNPC(NPC):
     def __init__(self, _name):
         super().__init__(_name)
         with open('QNPC_Dict.pickle', 'rb') as f:
@@ -130,7 +131,15 @@ class QNPC(AbsPlayer):
             # 状態ベクトル:[0]-[15]->FieldInfo.field_status, [16]->selected_piece
             app_slot_info = ()
             max_v = 0.0
-            for selected_slot_idx in [i for i, e in enumerate(field_vec) if e == '`']:
+
+            can_win_slot_idx = self.selectQuartoSlotIndex(_given_piece)
+            selected_slot_idx_list = []
+            if can_win_slot_idx != -1:
+                selected_slot_idx_list.append(can_win_slot_idx)
+            else:
+                selected_slot_idx_list = [i for i, e in enumerate(field_vec) if e == '`']
+
+            for selected_slot_idx in selected_slot_idx_list:
                 tmp_field_vec = field_vec[:selected_slot_idx] + self.encodePiece(_given_piece)\
                      + field_vec[selected_slot_idx+1:]
 
@@ -146,7 +155,18 @@ class QNPC(AbsPlayer):
                         max_v = QInfo.q_values[tmp_vec]
 
                 else:
-                    for selected_piece in FieldInfo.available_pieces:
+                    # QUARTOにならないコマの候補を抽出
+                    copied_available_pieces = copy.deepcopy(FieldInfo.available_pieces)
+                    not_next_quarto_pieces = []
+                    while (len(copied_available_pieces) != 0):
+                        random_selected_piece = random.choice(copied_available_pieces)
+                        copied_available_pieces.remove(random_selected_piece)
+                        quarto_slot_idx = self.selectQuartoSlotIndex(random_selected_piece)
+                        if quarto_slot_idx == -1 or (quarto_slot_idx != -1 and len(not_next_quarto_pieces) == 0):
+                            not_next_quarto_pieces.append(random_selected_piece)
+                        print(not_next_quarto_pieces)
+
+                    for selected_piece in not_next_quarto_pieces:
                         tmp_vec = tmp_field_vec + self.encodePiece(selected_piece)
 
                         if tmp_vec not in QInfo.q_values:
@@ -180,9 +200,3 @@ class QNPC(AbsPlayer):
                 print(max(next_states, key=lambda v: v[1]))
 
             QInfo.q_values[_field_vec] = old_qv + ALPHA*(GAMMA*max_qv - old_qv)
-
-
-    def selectSlot(self, _given_piece, _idx):
-        FieldInfo.field_status[_idx] = _given_piece
-    def selectPiece(self, _selected_piece):
-        pass
