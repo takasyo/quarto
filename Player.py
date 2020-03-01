@@ -51,6 +51,7 @@ class NPC(AbsPlayer):
         return idx
 
     def selectPiece(self, _available_pieces):
+        selected_piece = ''
         while(True):
             selected_piece = random.choice(_available_pieces)
             _available_pieces.remove(selected_piece)
@@ -88,6 +89,11 @@ class NPC(AbsPlayer):
                 return quarto_slot_index
         
         return -1
+    
+    def selectNextAction(self, _given_piece):
+        idx = self.selectSlot(_given_piece)
+        selected_piece = self.selectPiece(copy.deepcopy(FieldInfo.available_pieces))
+        return (idx, '', selected_piece)
 
 
 class QNPC(NPC):
