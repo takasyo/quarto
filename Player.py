@@ -51,6 +51,7 @@ class NPC(AbsPlayer):
         return idx
 
     def selectPiece(self, _available_pieces):
+        selected_piece = ''
         while(True):
             selected_piece = random.choice(_available_pieces)
             _available_pieces.remove(selected_piece)
@@ -88,6 +89,11 @@ class NPC(AbsPlayer):
                 return quarto_slot_index
         
         return -1
+    
+    def selectNextAction(self, _given_piece):
+        idx = self.selectSlot(_given_piece)
+        selected_piece = self.selectPiece(copy.deepcopy(FieldInfo.available_pieces))
+        return (idx, '', selected_piece)
 
 
 class QNPC(NPC):
@@ -129,9 +135,6 @@ class QNPC(NPC):
 
             # 空いているインデックス一覧を取得，状態ベクトルに変換，最も高いQ値が得られる状態を選ぶ
             # 状態ベクトル:[0]-[15]->FieldInfo.field_status, [16]->selected_piece
-            app_slot_info = ()
-            max_v = 0.0
-
             can_win_slot_idx = self.selectQuartoSlotIndex(_given_piece)
             selected_slot_idx_list = []
             if can_win_slot_idx != -1:
@@ -139,6 +142,8 @@ class QNPC(NPC):
             else:
                 selected_slot_idx_list = [i for i, e in enumerate(field_vec) if e == '`']
 
+            app_slot_info = ()
+            max_v = 0.0
             for selected_slot_idx in selected_slot_idx_list:
                 tmp_field_vec = field_vec[:selected_slot_idx] + self.encodePiece(_given_piece)\
                      + field_vec[selected_slot_idx+1:]

@@ -22,7 +22,11 @@ class NPCType(IntEnum):
     NPC = 0
     QNPC = 1
 
-WINNING_COUNT = 0
+class GameOverType(IntEnum):
+    NOTOVER = 0
+    DRAW = 1
+    WIN = 2
+
 
 class Qarto(object):
     def __init__(self, _game_mode=Difficulty.NORMAL):
@@ -36,8 +40,8 @@ class Qarto(object):
             self.view.dispTitleHard()
         else:
             self.view.dispTitleNormal()
-            pass
 
+    
     def gameIsOver(self, _current_player):
         for i in range(len(FieldInfo.clear_patterns)): # 0~9 or 0~18
             tmp = [1] * 4
@@ -61,31 +65,38 @@ class Qarto(object):
     
         return (0, -1, [])
           
+
+    def judgeGameOver(self, _current_player):
+        game_over_info = self.gameIsOver(_current_player)
+        game_over_type = game_over_info[0]
+
+        if game_over_type == GameOverType.WIN:
+            self.view.dispGameIsOver(_current_player.name)
+            self.view.drawField(game_over_info[1:3])
+        elif game_over_type == GameOverType.DRAW:
+            self.view.dispGameIsDraw()
+
+        return game_over_type
+
+
     def qLearning(self):
         self.q_npc_0 = QNPC("0O0")
         self.q_npc_1 = QNPC("1l1")
 
-        given_piece = self.q_npc_1.selectRandomPiece()
+        current_player = self.q_npc_1
+        given_piece = current_player.selectRandomPiece()
         for i in range(16):
             if i%2 == Turn.PLAYER:
-                (idx, vec, selected_piece) = self.q_npc_0.selectNextAction(given_piece)
-                game_over_info = self.gameIsOver(self.q_npc_0)
-                game_over_type = game_over_info[0]
-                if game_over_type == 2:
-                    self.view.dispGameIsOver(self.q_npc_0.name)
-                    self.view.drawField(game_over_info[1:3])
-                    break
-                self.q_npc_0.updateNextQValue(vec, game_over_type)
-
+                current_player = self.q_npc_0
+                (idx, vec, selected_piece) = current_player.selectNextAction(given_piece)
             else:
-                (idx, vec, given_piece) = self.q_npc_1.selectNextAction(selected_piece)
-                game_over_info = self.gameIsOver(self.q_npc_1)
-                game_over_type = game_over_info[0]
-                if game_over_type == 2:
-                    self.view.dispGameIsOver(self.q_npc_1.name)
-                    self.view.drawField(game_over_info[1:3])
-                    break
-                self.q_npc_1.updateNextQValue(vec, game_over_type)
+                current_player = self.q_npc_1
+                (idx, vec, given_piece) = current_player.selectNextAction(selected_piece)
+
+            game_over_type = self.judgeGameOver(current_player)
+            if game_over_type != GameOverType.NOTOVER:
+                current_player.updateNextQValue(vec, game_over_type)
+                break
 
 
     def main(self, _npc_type=NPCType.QNPC):
@@ -94,9 +105,11 @@ class Qarto(object):
         else:
             self.npc = NPC("NPC")
 
-        given_piece = self.npc.selectRandomPiece()
+        current_player = self.npc
+        given_piece = current_player.selectRandomPiece()
         for i in range(16):
             if i%2 == Turn.PLAYER:
+                current_player = self.player
                 # Playerがスロット選択
                 self.view.drawField()
                 self.view.dispReceivedPieceInstruction(given_piece)
@@ -106,7 +119,7 @@ class Qarto(object):
                     selected_pos = sorted(player_input)
             
                     if len(selected_pos) == 0:
-                        idx = self.player.selectRandomSlotIndex()
+                        idx = current_player.selectRandomSlotIndex()
                     elif len(selected_pos) != 2:
                         continue
                     elif (selected_pos[0] in [str(i) for i in range(1, 1+4)] 
@@ -116,22 +129,15 @@ class Qarto(object):
                         continue
                     
                     if FieldInfo.selectedSlotIsEmpty(idx):
-                        self.player.selectSlot(given_piece, idx)
+                        current_player.selectSlot(given_piece, idx)
                         break
                     else:
                         self.view.dispSelectSlotWarning()
 
-                self.view.dispSelectedSlotInfo(self.player.name, idx)
+                self.view.dispSelectedSlotInfo(current_player.name, idx)
                 self.view.drawField()
 
-                game_over_info = self.gameIsOver(self.player)
-                game_over_type = game_over_info[0]
-                if game_over_type == 2:
-                    self.view.dispGameIsOver(self.player.name)
-                    self.view.drawField(game_over_info[1:3])
-                    break
-                elif game_over_type == 1:
-                    self.view.dispGameIsDraw()
+                if self.judgeGameOver(current_player) != GameOverType.NOTOVER:
                     break
 
                 # Playerがコマ選択
@@ -141,51 +147,25 @@ class Qarto(object):
                     self.view.dispSelectPieceInstruction()
                     selected_piece_id = input()
                     if selected_piece_id == '':
-                        selected_piece = self.player.selectRandomPiece()
+                        selected_piece = current_player.selectRandomPiece()
                         break
                     else:
                         try:
                             selected_piece_id = int(selected_piece_id) - 1
                         except ValueError:
                             continue
+
                     if 0 <= selected_piece_id < len(FieldInfo.available_pieces):
-                        selected_piece = self.player.selectPiece(selected_piece_id)
+                        selected_piece = current_player.selectPiece(selected_piece_id)
                         break
                 self.view.dispSelectedPieceInfo(selected_piece)
 
             else:
-                if _npc_type == NPCType.QNPC:
-                    (idx, vec, given_piece) = self.npc.selectNextAction(selected_piece)
-
-                    self.view.dispSelectedSlotInfo(self.npc.name, idx)
-
-                    game_over_info = self.gameIsOver(self.npc)
-                    game_over_type = game_over_info[0]
-                    if game_over_type == 2:
-                        self.view.dispGameIsOver(self.npc.name)
-                        self.view.drawField(game_over_info[1:3])
-                        break
-                    elif game_over_type == 1:
-                        self.view.dispGameIsDraw()
-                        break
-                
-                else:
-                    # NPCがスロット選択
-                    idx = self.npc.selectSlot(selected_piece)
-                    self.view.dispSelectedSlotInfo(self.npc.name, idx)
-
-                    game_over_info = self.gameIsOver(self.npc)
-                    game_over_type = game_over_info[0]
-                    if game_over_type == 2:
-                        self.view.dispGameIsOver(self.npc.name)
-                        self.view.drawField(game_over_info[1:3])
-                        break
-                    elif game_over_type == 1:
-                        self.view.dispGameIsDraw()
-                        break
-
-                    # NPCがコマ選択
-                    given_piece = self.npc.selectPiece(copy.deepcopy(FieldInfo.available_pieces))
+                current_player = self.npc
+                (idx, vec, given_piece) = self.npc.selectNextAction(selected_piece)
+                self.view.dispSelectedSlotInfo(current_player.name, idx)
+                if self.judgeGameOver(current_player) != GameOverType.NOTOVER:
+                    break
 
       
 if __name__ == "__main__":
