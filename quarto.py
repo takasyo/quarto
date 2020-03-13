@@ -88,10 +88,10 @@ class Qarto(object):
         for i in range(16):
             if i%2 == Turn.PLAYER:
                 current_player = self.q_npc_0
-                (idx, vec, selected_piece) = current_player.selectNextAction(given_piece)
+                (_, vec, selected_piece) = current_player.selectNextAction(given_piece)
             else:
                 current_player = self.q_npc_1
-                (idx, vec, given_piece) = current_player.selectNextAction(selected_piece)
+                (_, vec, given_piece) = current_player.selectNextAction(selected_piece)
 
             game_over_type = self.judgeGameOver(current_player)
             if game_over_type != GameOverType.NOTOVER:
@@ -162,7 +162,7 @@ class Qarto(object):
 
             else:
                 current_player = self.npc
-                (idx, vec, given_piece) = self.npc.selectNextAction(selected_piece)
+                (idx, _, given_piece) = self.npc.selectNextAction(selected_piece)
                 self.view.dispSelectedSlotInfo(current_player.name, idx)
                 if self.judgeGameOver(current_player) != GameOverType.NOTOVER:
                     break
