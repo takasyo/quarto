@@ -1,9 +1,9 @@
 import random
 import copy
-from abc import ABCMeta
-from abc import abstractmethod
 import Levenshtein
 import pickle
+from abc import ABCMeta
+from abc import abstractmethod
 from GameInfo import FieldInfo, QInfo
 
 ALPHA = 0.3
@@ -44,35 +44,21 @@ class Player(AbsPlayer):
 
 class NPC(AbsPlayer):
     def selectSlot(self, _given_piece):
-        idx = self.selectQuartoSlotIndex(_given_piece)
-        if idx == -1: # どこに置いてもQUARTOになってしまう
+        idx = self.selectQuartoSlotIndex(_given_piece, FieldInfo.field_status)
+        if idx == -1:
             idx = self.selectRandomSlotIndex()
         FieldInfo.field_status[idx] = _given_piece
         return idx
 
-    def selectPiece(self, _available_pieces):
-        selected_piece = ''
-        while(True):
-            selected_piece = random.choice(_available_pieces)
-            _available_pieces.remove(selected_piece)
-            idx = self.selectQuartoSlotIndex(selected_piece)
-            if idx == -1: # selected_pieceがQUARTOにならない
-                FieldInfo.available_pieces.remove(selected_piece)
-                break
-            if len(_available_pieces) == 0:
-                selected_piece = self.selectRandomPiece()
-                break
-        return selected_piece
-
-    def selectQuartoSlotIndex(self, _given_piece):
+    def selectQuartoSlotIndex(self, _given_piece, _field_status):
         for i in range(len(FieldInfo.clear_patterns)): # 0~9 or 0~18
             tmp = [1] * 4
             empty_count = 0
-            self.field_status = copy.deepcopy(FieldInfo.field_status)
+            field_status = copy.deepcopy(_field_status)
             for search_index in FieldInfo.clear_patterns[i]: #ex)FieldInfo.clear_patterns[i]=[0, 4, 8, 12]
-                if FieldInfo.selectedSlotIsEmpty(search_index):
+                if field_status[search_index] == '':
                     if empty_count == 0: # empty slotが1つ目
-                        self.field_status[search_index] = _given_piece
+                        field_status[search_index] = _given_piece
                         quarto_slot_index = search_index
                         empty_count = 1
                     else:                # empty slotが2つ目以降
@@ -81,19 +67,180 @@ class NPC(AbsPlayer):
     
                 for str_index in [x for x, y in enumerate(tmp) if y == 1]: 
                     # tmpが1のindexだけ調べる
-                    if self.field_status[FieldInfo.clear_patterns[i][0]][str_index] != self.field_status[search_index][str_index]:
+                    if field_status[FieldInfo.clear_patterns[i][0]][str_index] != field_status[search_index][str_index]:
                         tmp[str_index] = 0
 
-            # tmpに1つでも1があるかつ全てのスロットにコマを置いている 
+            # tmpに1つでも1があるかつ全てのスロットにコマを置いている
             if 1 in tmp and empty_count == 1:
                 return quarto_slot_index
         
         return -1
+
+    def selectPiece(self, _available_pieces):
+        selected_piece = ''
+        if len(_available_pieces) != 0:
+            while(True):
+                selected_piece = random.choice(_available_pieces)
+                _available_pieces.remove(selected_piece)
+                idx = self.selectQuartoSlotIndex(selected_piece, FieldInfo.field_status)
+                if idx == -1: # selected_pieceがQUARTOにならない
+                    FieldInfo.available_pieces.remove(selected_piece)
+                    break
+                if len(_available_pieces) == 0:
+                    selected_piece = self.selectRandomPiece()
+                    break
+        return selected_piece
     
-    def selectNextAction(self, _given_piece):
-        idx = self.selectSlot(_given_piece)
-        selected_piece = self.selectPiece(copy.deepcopy(FieldInfo.available_pieces))
+    def selectNextAction(self, _given_piece, _turn):
+        idx = self.selectQuartoSlotIndex(_given_piece, FieldInfo.field_status)
+        field_status = copy.deepcopy(FieldInfo.field_status)
+        # print(idx)
+
+        if idx == -1 and _turn > 9:
+            self.npc_turn = _turn % 2 + 1
+            # print(f'self.npc_turn={self.npc_turn}')
+            available_pieces = copy.deepcopy(FieldInfo.available_pieces)
+            best = self.minimax(_given_piece, available_pieces, field_status, 16 - _turn)
+            idx = best[0]
+            selected_piece = best[1]
+            if selected_piece != -1:
+                FieldInfo.available_pieces.remove(selected_piece)
+            print(f'\nminimaxの結果，{best[0]}に置く{best[1]}を渡すがベストでした')
+        elif idx == -1:
+            while(True):
+                idx = random.randrange(len(field_status))
+                if field_status[idx] == '':
+                    break
+            selected_piece = self.selectPiece(copy.deepcopy(FieldInfo.available_pieces))
+        else:
+            selected_piece = self.selectPiece(copy.deepcopy(FieldInfo.available_pieces))
+
+        FieldInfo.field_status[idx] = _given_piece
         return (idx, '', selected_piece)
+
+    def gameIsOver(self, _field_status):
+        """
+        :return: GameOverType
+        """
+        for i in range(len(FieldInfo.clear_patterns)): # 0~9 or 0~18
+            tmp = [1] * 4
+            has_empty_slot = False
+            for search_index in FieldInfo.clear_patterns[i]: #ex)[0, 4, 8, 12]
+                if _field_status[search_index] == '':
+                    has_empty_slot = True
+                    break
+    
+                for str_index in [x for x, y in enumerate(tmp) if y == 1]: 
+                    # tmpが1のindexだけ調べる
+                    if _field_status[FieldInfo.clear_patterns[i][0]][str_index] != _field_status[search_index][str_index]:
+                        tmp[str_index] = 0
+
+            # tmpに1つでも1があるかつ全てのスロットにコマを置いている 
+            if 1 in tmp and has_empty_slot is False:
+                return 2
+
+        if '' not in _field_status:
+            return 1
+    
+        return 0
+
+    def calc_score(self, _field_status, _turn):
+        game_over_type = self.gameIsOver(_field_status)
+        win = 5
+        if game_over_type == 2:
+            return win + 0.25 * _turn ** 2
+        return 0
+
+    def minimax(self, _given_piece, _available_pieces, _field_status, _turn):
+        # print('\n' + '\t'*(3-_turn),end='')
+        # print(f'_turn={_turn}')
+        if _turn == 0 or self.gameIsOver(_field_status) != 0:
+            # print('\t'*(3-_turn),end='')
+            # print('最初です．{}を返します'.format([-1, -1, self.calc_score(_field_status, _turn)]))
+            return [-1, -1, self.calc_score(_field_status, _turn)]
+
+        if _turn % 2 == self.npc_turn:
+            best = [_field_status.index(''), -1, -9999]
+        else:
+            best = [_field_status.index(''), -1, 9999]
+
+        empty_field_slots = [x for x, y in enumerate(_field_status) if y == '']
+        available_pieces = copy.deepcopy(_available_pieces)
+
+        idx = self.selectQuartoSlotIndex(_given_piece, _field_status)
+        # print('\t'*(3-_turn),end='')
+        # print(f'idx={idx}')
+        if idx != -1:
+            field_status = copy.deepcopy(_field_status)
+            field_status[idx] = _given_piece
+            # print('\t'*(3-_turn),end='')
+            # print(f'{_given_piece}を{idx}に置くとQUARTOになります')
+            # print('QUARTOになりました．{}を返します'.format([idx, -1, self.calc_score(field_status, _turn)]))
+            return [idx, -1, self.calc_score(field_status, _turn)]
+
+        for tmp_slot in empty_field_slots:
+            # print('\t'*(3-_turn),end='')
+            # print(f'available_pieces={available_pieces}, empty_field_slots={empty_field_slots}')
+            # print('\t'*(3-_turn),end='')
+            # print(f'tmp_slot={tmp_slot}')
+            if len(available_pieces) == 0:
+                tmp_piece = -1
+                score = self.minimax(tmp_piece, available_pieces, _field_status, _turn - 1)
+                # print('\t'*(3-_turn),end='')
+                # print(f'スコアは{score}です．ベストの{best}と比べます．self.npc_turn={self.npc_turn}')
+                if _turn % 2 == self.npc_turn and score[2] > best[2]:
+                    best[0] = tmp_slot
+                    best[1] = tmp_piece
+                    best[2] = score[2]
+                    # print('\t'*(3-_turn),end='')
+                    # print(f'npc_turnです．今までのベストは{best}です')
+                elif _turn % 2 != self.npc_turn and score[2] < best[2]:
+                    best[0] = tmp_slot
+                    best[1] = tmp_piece
+                    best[2] = score[2]
+                    # print('\t'*(3-_turn),end='')
+                    # print(f'player_turnです．今までのベストは{best}です')
+                # elif _turn % 2 == self.npc_turn:   
+                #     print('\t'*(3-_turn),end='')
+                #     print(f'npc_turnで{score}は採用されませんでした')
+                # else:
+                #     print('\t'*(3-_turn),end='')
+                #     print(f'player_turnで{score}は採用されませんでした')
+
+            for tmp_piece in _available_pieces:    
+                # print('\t'*(3-_turn),end='')
+                # print(f'{_given_piece}を{tmp_slot}に置いて{tmp_piece}を渡した場合を考えます')
+                _field_status[tmp_slot] = _given_piece # 渡されたコマを置く
+                available_pieces.remove(tmp_piece) # 相手にコマを渡す
+                
+                score = self.minimax(tmp_piece, available_pieces, _field_status, _turn - 1)
+                # print('\t'*(3-_turn),end='')
+                # print(f'スコアは{score}です．ベストの{best}と比べます')
+                _field_status[tmp_slot] = '' # 置いたコマを戻す
+                available_pieces.append(tmp_piece) # 渡したコマをもとに戻す
+
+                if _turn % 2 == self.npc_turn and score[2] > best[2]:
+                    best[0] = tmp_slot
+                    best[1] = tmp_piece
+                    best[2] = score[2]
+                    # print('\t'*(3-_turn),end='')
+                    # print(f'npc_turnです．今までのベストは{best}です')
+                elif _turn % 2 != self.npc_turn and score[2] < best[2]:
+                    best[0] = tmp_slot
+                    best[1] = tmp_piece
+                    best[2] = score[2]
+                    # print('\t'*(3-_turn),end='')
+                    # print(f'player_turnです．今までのベストは{best}です')
+                # elif _turn % 2 == self.npc_turn:   
+                #     print('\t'*(3-_turn),end='')
+                #     print(f'npc_turnで{score}は採用されませんでした')
+                # else:
+                #     print('\t'*(3-_turn),end='')
+                #     print(f'player_turnで{score}は採用されませんでした')
+
+        # print('\t'*(3-_turn),end='')
+        # print(f'{best[0]}に置く，{best[1]}を渡すが{best[2]}でベストでした\n')
+        return best
 
 
 class QNPC(NPC):
@@ -115,7 +262,7 @@ class QNPC(NPC):
                 field_v = field_v + (chr(ord('a')-1))
         return field_v
 
-    def selectNextAction(self, _given_piece):
+    def selectNextAction(self, _given_piece, _turn):
         if random.random() < EPSILON:
             tmp_field_vec  = self.encodeField()
             selected_slot_idx   = self.selectRandomSlotIndex()
@@ -135,7 +282,7 @@ class QNPC(NPC):
 
             # 空いているインデックス一覧を取得，状態ベクトルに変換，最も高いQ値が得られる状態を選ぶ
             # 状態ベクトル:[0]-[15]->FieldInfo.field_status, [16]->selected_piece
-            can_win_slot_idx = self.selectQuartoSlotIndex(_given_piece)
+            can_win_slot_idx = self.selectQuartoSlotIndex(_given_piece, FieldInfo.field_status)
             selected_slot_idx_list = []
             if can_win_slot_idx != -1:
                 selected_slot_idx_list.append(can_win_slot_idx)
@@ -166,7 +313,7 @@ class QNPC(NPC):
                     while (len(copied_available_pieces) != 0):
                         random_selected_piece = random.choice(copied_available_pieces)
                         copied_available_pieces.remove(random_selected_piece)
-                        quarto_slot_idx = self.selectQuartoSlotIndex(random_selected_piece)
+                        quarto_slot_idx = self.selectQuartoSlotIndex(random_selected_piece, FieldInfo.field_status)
                         if quarto_slot_idx == -1 or (quarto_slot_idx != -1 and len(not_next_quarto_pieces) == 0):
                             not_next_quarto_pieces.append(random_selected_piece)
 

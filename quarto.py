@@ -92,10 +92,10 @@ class Qarto(object):
         for i in range(16):
             if i%2 == Turn.PLAYER:
                 current_player = self.q_npc_0
-                (_, vec, selected_piece) = current_player.selectNextAction(given_piece)
+                (_, vec, selected_piece) = current_player.selectNextAction(given_piece, 0)
             else:
                 current_player = self.q_npc_1
-                (_, vec, given_piece) = current_player.selectNextAction(selected_piece)
+                (_, vec, given_piece) = current_player.selectNextAction(selected_piece, 0)
 
             game_over_type = self.judgeGameOver(current_player)
             if game_over_type != GameOverType.NOTOVER:
@@ -112,6 +112,38 @@ class Qarto(object):
         current_player = self.npc
         given_piece = current_player.selectRandomPiece()
         for i in range(16):
+        #     if i==0:
+        #         FieldInfo.field_status[0] = format(7, '04b')
+        #         FieldInfo.available_pieces.remove(format(7, '04b'))
+        #         FieldInfo.field_status[3] = format(4, '04b')
+        #         FieldInfo.available_pieces.remove(format(4, '04b'))
+        #         FieldInfo.field_status[4] = format(10, '04b')
+        #         FieldInfo.available_pieces.remove(format(10, '04b'))
+        #         FieldInfo.field_status[5] = format(13, '04b')
+        #         FieldInfo.available_pieces.remove(format(13, '04b'))
+        #         FieldInfo.field_status[6] = format(9, '04b')
+        #         FieldInfo.available_pieces.remove(format(9, '04b'))
+        #         FieldInfo.field_status[7] = format(3, '04b')
+        #         FieldInfo.available_pieces.remove(format(3, '04b'))
+        #         FieldInfo.field_status[8] = format(1, '04b')
+        #         FieldInfo.available_pieces.remove(format(1, '04b'))
+        #         FieldInfo.field_status[9] = format(12, '04b')
+        #         FieldInfo.available_pieces.remove(format(12, '04b'))
+        #         FieldInfo.field_status[10] = format(2, '04b')
+        #         FieldInfo.available_pieces.remove(format(2, '04b'))
+        #         FieldInfo.field_status[11] = format(5, '04b')
+        #         FieldInfo.available_pieces.remove(format(5, '04b'))
+        #         FieldInfo.field_status[12] = format(11, '04b')
+        #         FieldInfo.available_pieces.remove(format(11, '04b'))
+        #         FieldInfo.field_status[13] = format(6, '04b')
+        #         FieldInfo.available_pieces.remove(format(6, '04b'))
+        #         FieldInfo.field_status[14] = format(15, '04b')
+        #         FieldInfo.available_pieces.remove(format(15, '04b'))
+        #         FieldInfo.field_status[15] = format(8, '04b')
+        #         FieldInfo.available_pieces.remove(format(8, '04b'))
+        #         given_piece = current_player.selectRandomPiece()
+        #     if 0 <= i <= 7:
+        #         continue
             if i%2 == Turn.PLAYER:
                 current_player = self.player
                 # Playerがスロット選択
@@ -166,7 +198,7 @@ class Qarto(object):
 
             else:
                 current_player = self.npc
-                (idx, _, given_piece) = self.npc.selectNextAction(selected_piece)
+                (idx, _, given_piece) = self.npc.selectNextAction(selected_piece, i)
                 self.view.dispSelectedSlotInfo(current_player.name, idx)
                 if self.judgeGameOver(current_player) != GameOverType.NOTOVER:
                     break
