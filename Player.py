@@ -94,26 +94,19 @@ class NPC(AbsPlayer):
     def selectNextAction(self, _given_piece, _turn):
         idx = self.selectQuartoSlotIndex(_given_piece, FieldInfo.field_status)
         field_status = copy.deepcopy(FieldInfo.field_status)
+        available_pieces = copy.deepcopy(FieldInfo.available_pieces)
 
         if idx == -1 and _turn > 9:
             self.npc_turn = _turn % 2 + 1
-            available_pieces = copy.deepcopy(FieldInfo.available_pieces)
-            best = self.minimax(_given_piece, available_pieces, field_status, 16 - _turn)
-            idx = best[0]
-            selected_piece = best[1]
-            if selected_piece != -1:
+            idx, selected_piece, _ = self.minimax(_given_piece, available_pieces, field_status, 16 - _turn)
+            FieldInfo.field_status[idx] = _given_piece
+            if selected_piece != '':
                 FieldInfo.available_pieces.remove(selected_piece)
-            print(f'\nminimaxの結果，{best[0]}に置く{best[1]}を渡すがベストでした')
-        elif idx == -1:
-            while(True):
-                idx = random.randrange(len(field_status))
-                if field_status[idx] == '':
-                    break
-            selected_piece = self.selectPiece(copy.deepcopy(FieldInfo.available_pieces))
+            print(f'\nminimaxの結果，{idx}に置く{selected_piece}を渡すがベストでした')
         else:
-            selected_piece = self.selectPiece(copy.deepcopy(FieldInfo.available_pieces))
+            idx = self.selectSlot(_given_piece)
+            selected_piece = self.selectPiece(available_pieces)
 
-        FieldInfo.field_status[idx] = _given_piece
         return (idx, '', selected_piece)
 
     def gameIsOver(self, _field_status):
@@ -144,9 +137,9 @@ class NPC(AbsPlayer):
 
     def calc_score(self, _field_status, _turn):
         game_over_type = self.gameIsOver(_field_status)
-        win = 5
+        WIN = 5
         if game_over_type == 2:
-            return win + 0.25 * _turn ** 2
+            return WIN + 0.25 * _turn ** 2
         return 0
 
     def minimax(self, _given_piece, _available_pieces, _field_status, _turn):
@@ -154,9 +147,9 @@ class NPC(AbsPlayer):
             return [-1, -1, self.calc_score(_field_status, _turn)]
 
         if _turn % 2 == self.npc_turn:
-            best = [_field_status.index(''), -1, -9999]
+            best = [_field_status.index(''), '', -9999]
         else:
-            best = [_field_status.index(''), -1, 9999]
+            best = [_field_status.index(''), '', 9999]
 
         empty_field_slots = [x for x, y in enumerate(_field_status) if y == '']
         available_pieces = copy.deepcopy(_available_pieces)
@@ -169,33 +162,33 @@ class NPC(AbsPlayer):
 
         for tmp_slot in empty_field_slots:
             if len(available_pieces) == 0:
-                tmp_piece = -1
-                score = self.minimax(tmp_piece, available_pieces, _field_status, _turn - 1)
-                if _turn % 2 == self.npc_turn and score[2] > best[2]:
+                tmp_piece = ''
+                _, _, score = self.minimax(tmp_piece, available_pieces, _field_status, _turn - 1)
+                if _turn % 2 == self.npc_turn and score > best[2]:
                     best[0] = tmp_slot
                     best[1] = tmp_piece
-                    best[2] = score[2]
-                elif _turn % 2 != self.npc_turn and score[2] < best[2]:
+                    best[2] = score
+                elif _turn % 2 != self.npc_turn and score < best[2]:
                     best[0] = tmp_slot
                     best[1] = tmp_piece
-                    best[2] = score[2]
+                    best[2] = score
 
             for tmp_piece in _available_pieces:
                 _field_status[tmp_slot] = _given_piece # 渡されたコマを置く
                 available_pieces.remove(tmp_piece) # 相手にコマを渡す
                 
-                score = self.minimax(tmp_piece, available_pieces, _field_status, _turn - 1)
+                _, _, score = self.minimax(tmp_piece, available_pieces, _field_status, _turn - 1)
                 _field_status[tmp_slot] = '' # 置いたコマを戻す
                 available_pieces.append(tmp_piece) # 渡したコマをもとに戻す
 
-                if _turn % 2 == self.npc_turn and score[2] > best[2]:
+                if _turn % 2 == self.npc_turn and score > best[2]:
                     best[0] = tmp_slot
                     best[1] = tmp_piece
-                    best[2] = score[2]
-                elif _turn % 2 != self.npc_turn and score[2] < best[2]:
+                    best[2] = score
+                elif _turn % 2 != self.npc_turn and score < best[2]:
                     best[0] = tmp_slot
                     best[1] = tmp_piece
-                    best[2] = score[2]
+                    best[2] = score
 
         return best
 
