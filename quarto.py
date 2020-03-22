@@ -4,13 +4,13 @@ import textwrap
 import argparse
 import pickle
 import copy
-from enum import Enum, IntEnum
+from enum import IntEnum
 from Player import Player, NPC, QNPC
 from GameInfo import FieldInfo, QInfo
 from View import View
 
 
-class Difficulty(Enum):
+class Difficulty(IntEnum):
     NORMAL = 0
     HARD = 1
 
@@ -107,11 +107,43 @@ class Qarto(object):
         if _npc_type == NPCType.QNPC:
             self.npc = QNPC("QNPC")
         else:
-            self.npc = NPC("NPC")
+            self.npc = NPC("NPC", Turn.NPC + 1)
 
         current_player = self.npc
         given_piece = current_player.selectRandomPiece()
         for i in range(16):
+            # if i==0:
+            #     FieldInfo.field_status[0] = format(7, '04b')
+            #     FieldInfo.available_pieces.remove(format(7, '04b'))
+            #     FieldInfo.field_status[3] = format(4, '04b')
+            #     FieldInfo.available_pieces.remove(format(4, '04b'))
+            #     FieldInfo.field_status[4] = format(10, '04b')
+            #     FieldInfo.available_pieces.remove(format(10, '04b'))
+            #     FieldInfo.field_status[5] = format(13, '04b')
+            #     FieldInfo.available_pieces.remove(format(13, '04b'))
+            #     FieldInfo.field_status[6] = format(9, '04b')
+            #     FieldInfo.available_pieces.remove(format(9, '04b'))
+            #     FieldInfo.field_status[7] = format(3, '04b')
+            #     FieldInfo.available_pieces.remove(format(3, '04b'))
+            #     FieldInfo.field_status[8] = format(1, '04b')
+            #     FieldInfo.available_pieces.remove(format(1, '04b'))
+            #     FieldInfo.field_status[9] = format(12, '04b')
+            #     FieldInfo.available_pieces.remove(format(12, '04b'))
+            #     FieldInfo.field_status[10] = format(2, '04b')
+            #     FieldInfo.available_pieces.remove(format(2, '04b'))
+            #     FieldInfo.field_status[11] = format(5, '04b')
+            #     FieldInfo.available_pieces.remove(format(5, '04b'))
+            #     FieldInfo.field_status[12] = format(11, '04b')
+            #     FieldInfo.available_pieces.remove(format(11, '04b'))
+            #     FieldInfo.field_status[13] = format(6, '04b')
+            #     FieldInfo.available_pieces.remove(format(6, '04b'))
+            #     FieldInfo.field_status[14] = format(15, '04b')
+            #     FieldInfo.available_pieces.remove(format(15, '04b'))
+            #     FieldInfo.field_status[15] = format(8, '04b')
+            #     FieldInfo.available_pieces.remove(format(8, '04b'))
+            #     given_piece = current_player.selectPiece(FieldInfo.available_pieces[:])
+            # if 0 <= i <= 11:
+            #     continue
             if i%2 == Turn.PLAYER:
                 current_player = self.player
                 # Playerがスロット選択
