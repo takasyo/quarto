@@ -103,7 +103,7 @@ class NPC(AbsPlayer):
         field_status = copy.deepcopy(FieldInfo.field_status)
         available_pieces = copy.deepcopy(FieldInfo.available_pieces)
 
-        if idx == -1 and _turn > 9:
+        if idx == -1 and _turn > 5:
             idx, selected_piece, _ = self.minimax(_given_piece, available_pieces, field_status, _turn)
             FieldInfo.field_status[idx] = _given_piece
             if selected_piece != '':
@@ -167,9 +167,9 @@ class NPC(AbsPlayer):
 
             # tmpに1つでも1があるかつ全てのスロットにコマを置いている
             if 1 in tmp and empty_count == 1: # リーチ
-                score += REACH * _turn * 0.2
-            if i in tmp and empty_count == 0: # QUARTO
-                score += WIN * _turn * 0.25
+                score += REACH * (16-_turn) * 0.2
+            if 1 in tmp and empty_count == 0: # QUARTO
+                score += WIN * (16-_turn) * 0.25
         
         return score
 
